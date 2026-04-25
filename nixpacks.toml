@@ -1,9 +1,0 @@
-# Nixpacks configuration for Zero Trust Sidecar
-[phases.setup]
-nixPkgs = ["nodejs", "npm", "cloudflared"]
-
-[phases.build]
-cmds = ["npm install", "npm run build"]
-
-[start]
-cmd = "chmod +x start.sh && ./start.sh"
