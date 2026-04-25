@@ -278,7 +278,7 @@ export default function Dashboard() {
                     <h1 style={{fontSize:'24px',fontWeight:'800',color:'#1a1d2e',letterSpacing:'-0.03em',marginBottom:'8px'}}>Acceso Restringido</h1>
                     <p style={{fontSize:'14px',color:'#6b7194',lineHeight:'1.6',marginBottom:'32px'}}>Estás intentando acceder a una zona protegida de <b>dato.click</b>.<br/>Inicia sesión con un correo autorizado para continuar.</p>
                     
-                    <button onClick={() => signIn('google')} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',width:'100%',padding:'14px',borderRadius:'12px',border:'1.5px solid #e8ebf2',background:'#fff',color:'#1a1d2e',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.04)',transition:'all 0.2s'}}>
+                    <button onClick={() => signIn('google', { prompt: 'select_account' })} style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'12px',width:'100%',padding:'14px',borderRadius:'12px',border:'1.5px solid #e8ebf2',background:'#fff',color:'#1a1d2e',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 2px 8px rgba(0,0,0,0.04)',transition:'all 0.2s'}}>
                         <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" style={{width:'22px',height:'22px'}}/>
                         Continuar con Google
                     </button>
