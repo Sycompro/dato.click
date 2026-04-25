@@ -6,13 +6,4 @@ nixPkgs = ["nodejs", "npm", "cloudflared"]
 cmds = ["npm install", "npm run build"]
 
 [start]
-cmd = """
-echo "Starting Cloudflare Tunnel Receiver..." && \
-cloudflared access tcp --hostname db.syscom.click --listener 127.0.0.1:1433 --service-token-id $CF_CLIENT_ID --service-token-secret $CF_CLIENT_SECRET > /tmp/tunnel.log 2>&1 & \
-echo "Waiting for tunnel to stabilize..." && \
-sleep 5 && \
-echo "Tunnel log snippet:" && \
-head -n 20 /tmp/tunnel.log && \
-echo "Starting Application..." && \
-npm start
-"""
+cmd = "chmod +x start.sh && ./start.sh"

@@ -11,7 +11,7 @@ const sqlConfig = {
         idleTimeoutMillis: 30000
     },
     options: {
-        encrypt: true,
+        encrypt: process.env.DB_ENCRYPT === 'true',
         trustServerCertificate: true,
         readOnlyIntent: true 
     }
