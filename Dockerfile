@@ -1,29 +1,33 @@
 # Build stage
-FROM node:18-slim AS builder
+FROM node:22-slim AS builder
 WORKDIR /app
+
+# Install build dependencies and cloudflared
+RUN apt-get update && apt-get install -y curl ca-certificates procps && rm -rf /var/lib/apt/lists/*
+
+RUN curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb \
+    && dpkg -i cloudflared.deb \
+    && rm cloudflared.deb
+
 COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build
 
-# Production stage
-FROM node:18-slim
+# Production image
+FROM node:22-slim AS runner
 WORKDIR /app
 
-# Install cloudflared and curl
-RUN apt-get update && apt-get install -y curl ca-certificates && \
-    curl -L --output cloudflared.deb https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb && \
-    dpkg -i cloudflared.deb && \
-    rm cloudflared.deb && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# Copy cloudflared and built app
+COPY --from=builder /usr/local/bin/cloudflared /usr/local/bin/cloudflared
 
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/start.sh ./
 
-COPY start.sh ./
 RUN chmod +x start.sh
 
 EXPOSE 8080
