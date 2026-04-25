@@ -4,6 +4,7 @@ const sqlConfig = {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD,
     server: process.env.DB_SERVER,
+    port: parseInt(process.env.DB_PORT) || 1433,
     pool: {
         max: 50,
         min: 0,
