@@ -11,9 +11,9 @@ const sqlConfig = {
         idleTimeoutMillis: 30000
     },
     options: {
-        encrypt: false,
+        encrypt: true,
         trustServerCertificate: true,
-        readOnlyIntent: true // Declaramos intención de solo lectura
+        readOnlyIntent: true 
     }
 };
 
