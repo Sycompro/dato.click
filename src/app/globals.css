@@ -523,23 +523,50 @@ html, body {
 }
 @media (max-width: 768px) {
     .topnav { 
-        padding: 0 20px; 
-        justify-content: space-between; 
-        gap: 0;
+        height: auto;
+        min-height: auto;
+        padding: 15px 20px; 
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-areas: 
+            "brand  menu"
+            "tabs   tabs"
+            "periods periods";
+        gap: 16px;
     }
-    .topnav-left { flex: 1; justify-content: flex-start; }
-    .topnav-right { flex: 1; justify-content: flex-end; gap: 12px; }
     
-    /* Ocultar elementos que saturan la cabecera móvil */
-    .tab-nav, .nav-sep, .period-switch, .live-badge { display: none; }
+    .topnav-left, .topnav-right { display: contents; }
     
-    .mobile-only { display: block; }
-    
+    .brand { grid-area: brand; }
     .mobile-menu-btn { 
+        grid-area: menu; 
         display: flex !important; 
-        order: 10;
         margin-left: auto;
     }
+    
+    .tab-nav { 
+        grid-area: tabs; 
+        display: flex !important; 
+        justify-content: center;
+        background: var(--grid);
+        padding: 4px;
+        border-radius: var(--r-sm);
+    }
+    .tab { flex: 1; text-align: center; font-size: 12px; }
+
+    .period-switch { 
+        grid-area: periods; 
+        display: flex !important; 
+        justify-content: space-between;
+    }
+    .sw { flex: 1; text-align: center; padding: 6px 2px; font-size: 10px; }
+
+    /* Los DatePickers aparecerán debajo si están activos */
+    .smart-picker-container { grid-column: span 2; width: 100%; }
+    .smart-picker-trigger { width: 100%; justify-content: center; }
+
+    /* Ocultar solo lo innecesario */
+    .nav-sep, .live-badge { display: none; }
     
     .main { padding: 16px; }
     .compare-grid { grid-template-columns: 1fr; }

@@ -406,21 +406,6 @@ export default function Dashboard() {
                         })}
                     </div>
 
-                    <div className="sidebar-section mobile-only" style={{ marginTop: '24px' }}>
-                        <div className="panel-title">Filtro de Periodo</div>
-                        <div className="sidebar-period-grid">
-                            {PERIODS.map(p => (
-                                <button 
-                                    key={p.k} 
-                                    className={`sw ${period===p.k?'on':''}`} 
-                                    onClick={()=>{ setPeriod(p.k); setIsSidebarOpen(false); }}
-                                >
-                                    {p.l}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
                     <div className="panel-footer" style={{ justifyContent: 'space-between' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <Calendar size={13}/> <span>{periodLabel}</span>
