@@ -142,8 +142,18 @@ export default function Dashboard() {
         if (period === 'weekly') url += `&weekStr=${weekStr}`;
         
         fetch(url).then(r => r.json())
-            .then(json => { if (json.success) setData(json.data); })
-            .catch(console.error)
+            .then(json => { 
+                if (json.success) {
+                    setData(json.data); 
+                } else {
+                    console.error("API Error:", json.error);
+                    setData([]);
+                }
+            })
+            .catch(err => {
+                console.error("Fetch failure:", err);
+                setData([]);
+            })
             .finally(() => setLoading(false));
     }, [selectedDbs, period, year, month, exactDate, weekStr]);
 
@@ -459,40 +469,46 @@ export default function Dashboard() {
 
                             {/* TREND */}
                             {(view === 'overview' || view === 'compare') && (
-                                <div className="card chart-card">
-                                    <div className="card-head">
-                                        <h3>{trendTitle}</h3>
-                                        <span className="card-badge">{selectedDbs.length} empresa{selectedDbs.length>1?'s':''}</span>
+                                    <div className="card chart-card">
+                                        <div className="card-head">
+                                            <h3>{trendTitle}</h3>
+                                            <span className="card-badge">{selectedDbs.length} empresa{selectedDbs.length>1?'s':''}</span>
+                                        </div>
+                                        <div className="chart-wrap" style={{height: 300}}>
+                                            {mergedTrends.length > 0 ? (
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                                    <AreaChart data={mergedTrends} margin={{top:5,right:10,bottom:0,left:0}}>
+                                                        <defs>
+                                                            {data.map(d => (
+                                                                <linearGradient key={d.id} id={`g-${d.id}`} x1="0" y1="0" x2="0" y2="1">
+                                                                    <stop offset="0%" stopColor={d.color} stopOpacity={0.2}/>
+                                                                    <stop offset="100%" stopColor={d.color} stopOpacity={0.01}/>
+                                                                </linearGradient>
+                                                            ))}
+                                                        </defs>
+                                                        <CartesianGrid strokeDasharray="3 3" stroke="#eef0f6" vertical={false}/>
+                                                        <XAxis dataKey="name" stroke="#b0b5c9" fontSize={11} tickLine={false} axisLine={false}/>
+                                                        <YAxis stroke="#b0b5c9" fontSize={11} tickLine={false} axisLine={false}
+                                                            tickFormatter={v=> v>=1000000 ? `${(v/1000000).toFixed(1)}M` : `${(v/1000).toFixed(0)}k`}/>
+                                                        <Tooltip content={<ChartTooltip/>} cursor={{stroke:'#dde0ec',strokeWidth:1,strokeDasharray:'4 4'}}/>
+                                                        <Legend iconType="circle" iconSize={8} wrapperStyle={{fontSize:12,paddingTop:12}}/>
+                                                        {data.map(d => (
+                                                            <Area key={d.id} type="monotone" dataKey={d.name}
+                                                                stroke={d.color} strokeWidth={2.5}
+                                                                fill={`url(#g-${d.id})`}
+                                                                dot={false} activeDot={{r:5,strokeWidth:2.5,stroke:'#fff',fill:d.color}}
+                                                                animationDuration={800}
+                                                            />
+                                                        ))}
+                                                    </AreaChart>
+                                                </ResponsiveContainer>
+                                            ) : (
+                                                <div className="empty-chart-msg" style={{height:'100%',display:'flex',alignItems:'center',justifyContent:'center',color:'#b0b5c9',fontSize:'14px'}}>
+                                                    Esperando datos del servidor...
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div className="chart-wrap" style={{height: 300}}>
-                                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                                            <AreaChart data={mergedTrends} margin={{top:5,right:10,bottom:0,left:0}}>
-                                                <defs>
-                                                    {data.map(d => (
-                                                        <linearGradient key={d.id} id={`g-${d.id}`} x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="0%" stopColor={d.color} stopOpacity={0.2}/>
-                                                            <stop offset="100%" stopColor={d.color} stopOpacity={0.01}/>
-                                                        </linearGradient>
-                                                    ))}
-                                                </defs>
-                                                <CartesianGrid strokeDasharray="3 3" stroke="#eef0f6" vertical={false}/>
-                                                <XAxis dataKey="name" stroke="#b0b5c9" fontSize={11} tickLine={false} axisLine={false}/>
-                                                <YAxis stroke="#b0b5c9" fontSize={11} tickLine={false} axisLine={false}
-                                                    tickFormatter={v=> v>=1000000 ? `${(v/1000000).toFixed(1)}M` : `${(v/1000).toFixed(0)}k`}/>
-                                                <Tooltip content={<ChartTooltip/>} cursor={{stroke:'#dde0ec',strokeWidth:1,strokeDasharray:'4 4'}}/>
-                                                <Legend iconType="circle" iconSize={8} wrapperStyle={{fontSize:12,paddingTop:12}}/>
-                                                {data.map(d => (
-                                                    <Area key={d.id} type="monotone" dataKey={d.name}
-                                                        stroke={d.color} strokeWidth={2.5}
-                                                        fill={`url(#g-${d.id})`}
-                                                        dot={false} activeDot={{r:5,strokeWidth:2.5,stroke:'#fff',fill:d.color}}
-                                                        animationDuration={800}
-                                                    />
-                                                ))}
-                                            </AreaChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
                             )}
 
                             {/* MATRIZ HORARIA - SOLO EN MODO HOURLY */}

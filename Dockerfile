@@ -19,7 +19,7 @@ FROM node:22-slim AS runner
 WORKDIR /app
 
 # Copy cloudflared and built app
-COPY --from=builder /usr/local/bin/cloudflared /usr/local/bin/cloudflared
+COPY --from=builder /usr/bin/cloudflared /usr/bin/cloudflared
 
 COPY --from=builder /app/next.config.mjs ./
 COPY --from=builder /app/public ./public

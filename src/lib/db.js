@@ -23,19 +23,23 @@ const pools = {};
 export const getConnection = async (databaseName = process.env.DB_NAME) => {
     try {
         if (pools[databaseName]) {
-            return pools[databaseName];
+            // Verificar si el pool sigue conectado
+            const pool = await pools[databaseName];
+            if (pool.connected) return pool;
+            delete pools[databaseName];
         }
 
         const configForDb = { ...sqlConfig, database: databaseName };
-        const poolPromise = new sql.ConnectionPool(configForDb).connect();
+        console.log(`Attempting to connect to ${databaseName} at ${configForDb.server}:${configForDb.port}...`);
         
+        const poolPromise = new sql.ConnectionPool(configForDb).connect();
         pools[databaseName] = poolPromise;
         const pool = await poolPromise;
-        console.log(`Connected to SQL Server: ${databaseName}`);
         
+        console.log(`CONNECTED: SQL Server ${databaseName} via ${configForDb.server}`);
         return pool;
     } catch (err) {
-        console.error(`Database connection failed for ${databaseName}:`, err);
+        console.error(`CONNECTION FAILED for ${databaseName} (${process.env.DB_SERVER}):`, err.message);
         delete pools[databaseName];
         throw err;
     }
