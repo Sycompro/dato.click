@@ -4,17 +4,15 @@ import { getConnection } from '../../../lib/db';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../auth/[...nextauth]/route";
 
-const ALL_DBS = ['BdNava00','BdNava01','BdNava02','BdNava03','BdNava04','BdNava05'];
+const ALL_DBS = ['BdNava01','BdNava02','BdNava04','BdNava05'];
 
 // Colores e iconos predefinidos para asignar a las bases de datos en orden
-const STYLES = [
-    { color: '#4880f5', bg: '#eff4ff', icon: 'Building2' },
-    { color: '#ec4899', bg: '#fce8f3', icon: 'Store' },
-    { color: '#10b981', bg: '#e6f7f0', icon: 'Warehouse' },
-    { color: '#7c5cfc', bg: '#f3f0ff', icon: 'Building' },
-    { color: '#6366f1', bg: '#f0ecff', icon: 'Briefcase' },
-    { color: '#f59e0b', bg: '#fef6e7', icon: 'Award' },
-];
+const STYLES = {
+    'BdNava01': { color: '#ec4899', bg: '#fce8f3', icon: 'Store' },
+    'BdNava02': { color: '#10b981', bg: '#e6f7f0', icon: 'Warehouse' },
+    'BdNava04': { color: '#6366f1', bg: '#f0ecff', icon: 'Briefcase' },
+    'BdNava05': { color: '#f59e0b', bg: '#fef6e7', icon: 'Award' },
+};
 
 export async function GET() {
     const session = await getServerSession(authOptions);
@@ -44,13 +42,14 @@ export async function GET() {
             
             // Si el nombre sigue siendo el default, es porque la tabla no existe o está vacía
             // Pero como la instrucción es mostrar solo lo real, mostramos el nombre que venga del ERP
+            const style = STYLES[dbId] || STYLES['BdNava01'];
             companies.push({
                 id: dbId,
                 name: name,
                 ruc: ruc,
-                color: STYLES[i].color,
-                bg: STYLES[i].bg,
-                iconStr: STYLES[i].icon
+                color: style.color,
+                bg: style.bg,
+                iconStr: style.icon
             });
         }
         

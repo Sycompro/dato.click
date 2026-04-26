@@ -64,7 +64,7 @@ function ChartTooltip({ active, payload, label }) {
 export default function Dashboard() {
     const { data: session, status } = useSession();
 
-    const [selectedDbs, setSelectedDbs] = useState(['BdNava00']);
+    const [selectedDbs, setSelectedDbs] = useState(['BdNava01']);
     const [period, setPeriod] = useState('monthly');
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
