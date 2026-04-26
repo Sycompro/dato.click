@@ -167,6 +167,28 @@ html, body {
     padding: 16px 10px 4px; border-top: 1px solid var(--line); margin-top: 12px;
 }
 
+.mobile-only { display: none; }
+
+.sidebar-period-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    padding: 0 10px;
+}
+.sidebar-period-grid .sw {
+    width: 100%;
+    text-align: center;
+    border: 1px solid var(--line);
+    background: #f8fafc;
+    padding: 10px;
+    font-size: 12px;
+}
+.sidebar-period-grid .sw.on {
+    background: var(--blue);
+    color: #fff;
+    border-color: var(--blue);
+}
+
 /* ============================================================
    MAIN
    ============================================================ */
@@ -510,6 +532,8 @@ html, body {
     
     /* Ocultar elementos que saturan la cabecera móvil */
     .tab-nav, .nav-sep, .period-switch, .live-badge { display: none; }
+    
+    .mobile-only { display: block; }
     
     .mobile-menu-btn { 
         display: flex !important; 
