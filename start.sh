@@ -6,17 +6,19 @@ echo "--- STARTING DATO.CLICK INFRASTRUCTURE ---"
 if [ -n "$CF_CLIENT_ID" ] && [ -n "$CF_CLIENT_SECRET" ]; then
     echo "Configuring Cloudflare Tunnel for db.syscom.click..."
     
-    # Usamos la sintaxis más simple posible para evitar el error de "multiple origin urls"
-    # Redirigimos el tráfico de db.syscom.click al puerto local 1433
-    cloudflared access tcp --hostname db.syscom.click --listener 0.0.0.0:1433 --service-token-id "$CF_CLIENT_ID" --service-token-secret "$CF_CLIENT_SECRET" > /app/tunnel.log 2>&1 &
+    # Iniciamos con log level debug para ver el apretón de manos (handshake)
+    cloudflared access tcp --hostname db.syscom.click --listener 0.0.0.0:1433 --service-token-id "$CF_CLIENT_ID" --service-token-secret "$CF_CLIENT_SECRET" --loglevel debug > /app/tunnel.log 2>&1 &
     
-    echo "Tunnel initiated in background. Check /app/tunnel.log if connection fails."
-    # Esperar un poco a que el proceso se asiente
-    sleep 5
+    echo "Tunnel initiated. Showing first logs:"
+    sleep 3
+    cat /app/tunnel.log
 else
     echo "WARNING: CF_CLIENT_ID or CF_CLIENT_SECRET not set."
 fi
 
 # 2. Start Next.js
-echo "Starting Next.js Application on 127.0.0.1:1433..."
+echo "Starting Next.js..."
+# Lanzamos un proceso en segundo plano que imprime el log del túnel cada vez que cambia, 
+# para verlo en la consola de Railway
+tail -f /app/tunnel.log &
 npm start
