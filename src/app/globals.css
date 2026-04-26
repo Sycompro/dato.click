@@ -500,10 +500,27 @@ html, body {
     .detail-panel:first-child { border-right: none; border-bottom: 1px solid var(--line); }
 }
 @media (max-width: 768px) {
-    .topnav { padding: 0 14px; gap: 8px; }
-    .main { padding: 14px; }
+    .topnav { 
+        padding: 0 20px; 
+        justify-content: space-between; 
+        gap: 0;
+    }
+    .topnav-left { flex: 1; justify-content: flex-start; }
+    .topnav-right { flex: 1; justify-content: flex-end; gap: 12px; }
+    
+    /* Ocultar elementos que saturan la cabecera móvil */
+    .tab-nav, .nav-sep, .period-switch, .live-badge { display: none; }
+    
+    .mobile-menu-btn { 
+        display: flex !important; 
+        order: 10;
+        margin-left: auto;
+    }
+    
+    .main { padding: 16px; }
     .compare-grid { grid-template-columns: 1fr; }
-    .context-title { font-size: 18px; }
+    .context-title { font-size: 20px; }
+    .context-left { flex-direction: column; gap: 4px; align-items: flex-start; }
 }
 
 /* ============================================================

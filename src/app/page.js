@@ -310,9 +310,6 @@ export default function Dashboard() {
             {/* TOP NAV */}
             <header className="topnav">
                 <div className="topnav-left">
-                    <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
-                        <Menu size={20} />
-                    </button>
                     <div className="brand">
                         <div className="brand-icon"><Activity size={17} /></div>
                         <span className="brand-name">dato<span className="brand-dot">.click</span></span>
@@ -366,6 +363,9 @@ export default function Dashboard() {
                      )}
                     
                     <div className="live-badge"><span className="pulse"></span>En Vivo</div>
+                    <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+                        <Menu size={20} />
+                    </button>
                 </div>
             </header>
 
