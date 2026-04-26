@@ -18,6 +18,9 @@ RUN npm run build
 FROM node:22-slim AS runner
 WORKDIR /app
 
+# Instalar certificados en la imagen final para SSL
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 # Copy cloudflared and built app
 COPY --from=builder /usr/bin/cloudflared /usr/bin/cloudflared
 
