@@ -109,7 +109,13 @@ export default function Dashboard() {
         return () => isMounted = false;
     }, []);
 
-    const toggleDb = (id) => {
+    const selectOnlyDb = (id) => {
+        setSelectedDbs([id]);
+        setIsSidebarOpen(false); // Opcional: cerrar el sidebar en móvil
+    };
+
+    const toggleDb = (e, id) => {
+        e.stopPropagation(); // Evita que se dispare el selectOnlyDb
         setSelectedDbs(prev => {
             if (prev.includes(id)) {
                 if (prev.length === 1) return prev;
@@ -136,6 +142,7 @@ export default function Dashboard() {
 
     const loadData = useCallback(() => {
         setLoading(true);
+        setData([]); // Limpiar datos actuales para evitar confusión visual
         const ids = selectedDbs.join(',');
         let url = `/api/sales?ids=${ids}&period=${period}&year=${year}&month=${month}`;
         if (period === 'daily') url += `&exactDate=${exactDate}`;
@@ -376,9 +383,13 @@ export default function Dashboard() {
                             const IconComp = c.Icon;
                             return (
                                 <button key={c.id} className={`company-chip ${isOn ? 'on' : ''}`}
-                                    onClick={() => toggleDb(c.id)}
+                                    onClick={() => selectOnlyDb(c.id)}
                                     style={isOn ? { borderColor: c.color + '40' } : {}}>
-                                    <div className={`chip-check ${isOn ? 'checked' : ''}`} style={isOn ? { background: c.color } : {}}>
+                                    <div 
+                                        className={`chip-check ${isOn ? 'checked' : ''}`} 
+                                        onClick={(e) => toggleDb(e, c.id)}
+                                        style={isOn ? { background: c.color } : {}}
+                                    >
                                         {isOn && <Check size={11}/>}
                                     </div>
                                     <div className="chip-icon-wrap" style={{ background: c.bg, color: c.color }}>
