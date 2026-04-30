@@ -11,7 +11,7 @@ import {
     Wine, Sparkles, MapPin, ShoppingBag, Receipt,
     Crown, Award, Medal, Hash, RefreshCw,
     FileText, File, FileCheck, FileWarning, Settings2, X,
-    Briefcase, Warehouse, Building, Menu, Lock
+    Briefcase, Warehouse, Building, Menu, Lock, Filter
 } from 'lucide-react';
 import SmartDatePicker from '@/components/SmartDatePicker';
 import { useSession, signIn } from "next-auth/react";
@@ -84,6 +84,7 @@ export default function Dashboard() {
     const [visibleCompanies, setVisibleCompanies] = useState([]);
     const [showConfigModal, setShowConfigModal] = useState(false);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     useEffect(() => {
         let isMounted = true;
@@ -363,11 +364,88 @@ export default function Dashboard() {
                      )}
                     
                     <div className="live-badge"><span className="pulse"></span>En Vivo</div>
-                    <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
-                        <Menu size={20} />
-                    </button>
+                    
+                    <div className="mobile-actions">
+                        <button className="mobile-filter-btn" onClick={() => setIsFilterOpen(true)}>
+                            <Filter size={20} />
+                        </button>
+                        <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(true)}>
+                            <Menu size={20} />
+                        </button>
+                    </div>
                 </div>
             </header>
+
+            {/* MOBILE FILTER DRAWER */}
+            {isFilterOpen && <div className="mobile-overlay" onClick={() => setIsFilterOpen(false)}></div>}
+            <aside className={`filter-drawer ${isFilterOpen ? 'open' : ''}`}>
+                <div className="drawer-header">
+                    <div className="drawer-title"><Filter size={16}/> Filtros</div>
+                    <button className="drawer-close" onClick={() => setIsFilterOpen(false)}><X size={18}/></button>
+                </div>
+                
+                <div className="drawer-body">
+                    <div className="filter-group">
+                        <div className="filter-label">Vista</div>
+                        <nav className="mobile-tab-nav">
+                            {[{k:'overview',l:'Resumen'},{k:'compare',l:'Comparar'},{k:'detail',l:'Detalle'}].map(t => (
+                                <button key={t.k} className={`m-tab ${view===t.k?'active':''}`} onClick={()=>{setView(t.k); setIsFilterOpen(false);}}>{t.l}</button>
+                            ))}
+                        </nav>
+                    </div>
+
+                    <div className="filter-group">
+                        <div className="filter-label">Temporalidad</div>
+                        <div className="mobile-period-grid">
+                            {PERIODS.map(p => (
+                                <button key={p.k} className={`m-sw ${period===p.k?'on':''}`} onClick={()=>setPeriod(p.k)}>{p.l}</button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="filter-group">
+                        <div className="filter-label">Fecha / Periodo</div>
+                        <div className="mobile-date-picker-wrap">
+                            {period === 'daily' && (
+                                <SmartDatePicker 
+                                    mode="daily" 
+                                    value={exactDate} 
+                                    onChange={setExactDate} 
+                                />
+                            )}
+                            {period === 'weekly' && (
+                                <SmartDatePicker 
+                                    mode="weekly" 
+                                    value={weekStr} 
+                                    onChange={setWeekStr} 
+                                />
+                            )}
+                            {period === 'monthly' && (
+                                <SmartDatePicker 
+                                    mode="monthly" 
+                                    value={`${year}-${String(month).padStart(2,'0')}`} 
+                                    onChange={val => {
+                                        const [y, m] = val.split('-');
+                                        setYear(+y); setMonth(+m);
+                                    }} 
+                                />
+                            )}
+                            {period === 'annual' && (
+                                <SmartDatePicker 
+                                    mode="annual" 
+                                    value={year} 
+                                    onChange={setYear} 
+                                    availableYears={availableYears}
+                                />
+                            )}
+                        </div>
+                    </div>
+                    
+                    <button className="apply-filters-btn" onClick={() => setIsFilterOpen(false)}>
+                        Aplicar Filtros
+                    </button>
+                </div>
+            </aside>
 
             <div className="body-layout">
                 {/* MOBILE OVERLAY */}
