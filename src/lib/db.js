@@ -5,6 +5,8 @@ const sqlConfig = {
     password: process.env.DB_PASSWORD,
     server: process.env.DB_SERVER,
     port: parseInt(process.env.DB_PORT) || 1433,
+    connectionTimeout: 30000,
+    requestTimeout: 30000,
     pool: {
         max: 50,
         min: 0,
@@ -21,26 +23,32 @@ const pools = {};
 
 // Obtiene una conexión para una empresa específica (BdNavaXX)
 export const getConnection = async (databaseName = process.env.DB_NAME) => {
-    try {
-        if (pools[databaseName]) {
-            // Verificar si el pool sigue conectado
-            const pool = await pools[databaseName];
-            if (pool.connected) return pool;
-            delete pools[databaseName];
-        }
+    let retries = 3;
+    while (retries > 0) {
+        try {
+            if (pools[databaseName]) {
+                const pool = await pools[databaseName];
+                if (pool.connected) return pool;
+                delete pools[databaseName];
+            }
 
-        const configForDb = { ...sqlConfig, database: databaseName };
-        console.log(`Attempting to connect to ${databaseName} at ${configForDb.server}:${configForDb.port}...`);
-        
-        const poolPromise = new sql.ConnectionPool(configForDb).connect();
-        pools[databaseName] = poolPromise;
-        const pool = await poolPromise;
-        
-        console.log(`CONNECTED: SQL Server ${databaseName} via ${configForDb.server}`);
-        return pool;
-    } catch (err) {
-        console.error(`CONNECTION FAILED for ${databaseName} (${process.env.DB_SERVER}):`, err.message);
-        delete pools[databaseName];
-        throw err;
+            const configForDb = { ...sqlConfig, database: databaseName };
+            console.log(`[SQL] Attempting connection to ${databaseName} (${retries} retries left)...`);
+            
+            const poolPromise = new sql.ConnectionPool(configForDb).connect();
+            pools[databaseName] = poolPromise;
+            const pool = await poolPromise;
+            
+            console.log(`[SQL] CONNECTED: ${databaseName}`);
+            return pool;
+        } catch (err) {
+            retries--;
+            console.error(`[SQL] CONNECTION FAILED for ${databaseName}:`, err.message);
+            delete pools[databaseName];
+            
+            if (retries === 0) throw err;
+            console.log(`[SQL] Retrying in 2 seconds...`);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+        }
     }
 };
