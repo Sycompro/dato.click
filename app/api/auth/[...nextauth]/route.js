@@ -4,6 +4,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { getConnection } from "@/lib/db";
 import sql from "mssql";
 
+// Función de "encriptación" Navasoft (suma 105 al código ASCII)
+function navasoftEncrypt(password) {
+    if (!password) return "";
+    return password.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 105)).join('');
+}
+
 export const authOptions = {
   providers: [
     GoogleProvider({
@@ -23,53 +29,52 @@ export const authOptions = {
         }
 
         try {
-          // Paso 1: Validar empresa en BdNavaSys (Sincronizado con Dashboard)
-          const mainPool = await getConnection('BdNavaSys');
-          const ciaResult = await mainPool.request()
+          // Paso 1: Buscar configuración de conexión en BdNava01 (igual que psventa.exe)
+          const masterPool = await getConnection('BdNava01');
+          const empresaResult = await masterPool.request()
             .input('code', credentials.code)
-            .query("SELECT codcia, nomcia FROM sysnavacia WHERE codcia = @code AND estado = 1");
+            .query("SELECT Base FROM confemp01 WHERE Codigo = @code AND Estado = 1");
 
-          if (ciaResult.recordset.length === 0) {
-            console.error("[Auth] Código de empresa no válido en BdNavaSys:", credentials.code);
+          if (empresaResult.recordset.length === 0) {
+            console.error("[Auth] Código de empresa no encontrado en confemp01:", credentials.code);
             return null;
           }
 
-          const dbName = `BdNava${credentials.code.trim()}`;
-          console.log(`[Auth] Intentando autenticar en base de datos: ${dbName}`);
+          const dbName = empresaResult.recordset[0].Base.trim();
+          console.log(`[Auth] Conectando a base de datos de empresa: ${dbName}`);
           const empresaPool = await getConnection(dbName);
           
-          // Paso 2: Detección de Esquema de Usuario (ERP vs POS)
+          // Paso 2: Intentar autenticación según el esquema disponible
           
-          // Intentar Esquema ERP (TBL_USUARIO)
+          // 2.1 Esquema ERP (TBL_USUARIO con Clave ofuscada)
           try {
+             const encryptedPass = navasoftEncrypt(credentials.password);
              const erpResult = await empresaPool.request()
                 .input('usuario', credentials.username)
-                .input('clave', credentials.password)
-                .query("SELECT Usuario, Clave, Nombres + ' ' + Apellidos as FullName FROM TBL_USUARIO WHERE Usuario = @usuario AND Clave = @clave AND Estado = 1");
+                .input('clave', encryptedPass)
+                .query("SELECT Usuario, Nombres + ' ' + Apellidos as FullName FROM TBL_USUARIO WHERE Usuario = @usuario AND Clave = @clave AND Estado = 1");
              
              if (erpResult.recordset.length > 0) {
                 const user = erpResult.recordset[0];
                 return {
                   id: user.Usuario,
-                  name: user.FullName || user.Usuario,
+                  name: user.FullName?.trim() || user.Usuario,
                   username: user.Usuario,
                   company: dbName,
                   schema: 'ERP'
                 };
              }
           } catch (e) {
-             console.log(`[Auth] No se encontró tabla TBL_USUARIO en ${dbName}, probando esquema POS...`);
+             console.log(`[Auth] Esquema TBL_USUARIO no disponible en ${dbName}`);
           }
 
-          // Intentar Esquema POS (Sede + Empresa)
+          // 2.2 Esquema POS (Sede + Empresa con Clave en plano)
           try {
              const posResult = await empresaPool.request()
                 .input('usuario', credentials.username)
                 .input('clave', credentials.password)
                 .query(`
-                  SELECT 
-                    S.SedeId, S.Direccion AS SedeName, 
-                    E.EmpresaId, E.RazonSocial, E.Ruc
+                  SELECT S.SedeId, S.Direccion AS SedeName, E.RazonSocial, E.Ruc, E.EmpresaId
                   FROM Sede AS S
                   INNER JOIN Empresa AS E ON S.EmpresaId = E.EmpresaId
                   WHERE S.Usuario = @usuario AND S.Clave = @clave
@@ -79,7 +84,7 @@ export const authOptions = {
                 const seat = posResult.recordset[0];
                 return {
                   id: String(seat.SedeId),
-                  name: seat.RazonSocial?.trim() || 'Empresa',
+                  name: seat.RazonSocial?.trim() || 'Sede POS',
                   username: credentials.username,
                   company: dbName,
                   empresaId: seat.EmpresaId,
@@ -90,28 +95,19 @@ export const authOptions = {
                 };
              }
           } catch (e) {
-             console.error(`[Auth] Error al consultar esquema POS en ${dbName}:`, e.message);
+             console.log(`[Auth] Esquema POS no disponible en ${dbName}`);
           }
 
-          console.warn(`[Auth] Credenciales incorrectas para ${credentials.username} en ${dbName}`);
+          console.warn(`[Auth] Credenciales inválidas para ${credentials.username} en ${dbName}`);
           return null;
         } catch (err) {
-          console.error("[Auth] Error Crítico:", err.message);
+          console.error("[Auth] Error Crítico de Autenticación:", err.message);
           return null;
         }
       }
     })
   ],
   callbacks: {
-    async signIn({ user, account }) {
-      if (account.provider === "google") {
-        const allowedEmails = process.env.ALLOWED_EMAILS 
-            ? process.env.ALLOWED_EMAILS.split(',').map(e => e.trim().toLowerCase()) 
-            : [];
-        return allowedEmails.includes(user.email.toLowerCase());
-      }
-      return true;
-    },
     async jwt({ token, user }) {
       if (user) {
         token.company = user.company;
@@ -140,10 +136,8 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: '/auth/signin',
-    error: '/auth/error',
   }
 };
 
 const handler = NextAuth(authOptions);
-
 export { handler as GET, handler as POST };
