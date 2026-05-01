@@ -4,17 +4,17 @@ import {
     AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
     ResponsiveContainer, BarChart, Bar, Cell, Legend, LabelList
 } from 'recharts';
-import {
+import { useSession, signIn, signOut } from "next-auth/react";
+import { 
     Activity, TrendingUp, Users, Building2,
     DollarSign, BarChart3, Layers, Check, Calendar,
     ArrowUpRight, ArrowDownRight, Store, Gem, Dumbbell,
     Wine, Sparkles, MapPin, ShoppingBag, Receipt,
     Crown, Award, Medal, Hash, RefreshCw,
     FileText, File, FileCheck, FileWarning, Settings2, X,
-    Briefcase, Warehouse, Building, Menu, Lock, Filter
+    Briefcase, Warehouse, Building, Menu, Lock, Filter,
+    LogOut
 } from 'lucide-react';
-import SmartDatePicker from '@/components/SmartDatePicker';
-import { useSession, signIn } from "next-auth/react";
 
 const MONTHS_FULL = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MONTHS_SHORT = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
@@ -482,6 +482,21 @@ export default function Dashboard() {
                                 </button>
                             );
                         })}
+                    </div>
+
+                    <div className="panel-user">
+                        <div className="user-info">
+                            <div className="user-avatar">
+                                {session?.user?.name?.[0] || session?.user?.email?.[0]?.toUpperCase() || '?'}
+                            </div>
+                            <div className="user-details">
+                                <div className="user-name">{session?.user?.name || 'Usuario'}</div>
+                                <div className="user-email">{session?.user?.email}</div>
+                            </div>
+                        </div>
+                        <button className="logout-btn" onClick={() => signOut()} title="Cerrar Sesión">
+                            <LogOut size={16} />
+                        </button>
                     </div>
 
                     <div className="panel-footer" style={{ justifyContent: 'space-between' }}>
