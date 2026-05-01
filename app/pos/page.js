@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Search, ShoppingCart, Package, Info, Plus, Minus, X, CheckCircle2, AlertCircle, Receipt, User, Clock, Lock, Banknote, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function POSPage() {
     const { data: session } = useSession();
@@ -195,8 +195,13 @@ export default function POSPage() {
                         </div>
                     </div>
                 </div>
-                
                 <div className="flex items-center gap-6">
+                    <button 
+                        onClick={() => signOut({ callbackUrl: '/auth/signin' })}
+                        className="px-4 py-2 bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 transition-all rounded-xl text-sm font-semibold flex items-center gap-2"
+                    >
+                        <Lock className="w-4 h-4" /> Salir
+                    </button>
                     <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
                         {['01', '03', '65'].map(type => (
                             <button
