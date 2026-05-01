@@ -1004,10 +1004,16 @@ html, body {
     
     .dkpi { border-right: none; border-bottom: 1px solid var(--line); width: 100%; flex-direction: row; justify-content: space-between; align-items: center; }
 }
+
+/* Ocultar panel de filtros en PC */
+.filter-drawer {
+    display: none !important;
+}
+
 @media (max-width: 1024px) {
     /* Filter Drawer Specifics (Solo móvil) */
     .filter-drawer {
-        display: flex;
+        display: flex !important;
         flex-direction: column;
         position: fixed;
         top: 0; right: -300px; bottom: 0;
