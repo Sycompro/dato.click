@@ -15,6 +15,7 @@ import {
     Briefcase, Warehouse, Building, Menu, Lock, Filter,
     LogOut
 } from 'lucide-react';
+import SmartDatePicker from '@/components/SmartDatePicker';
 
 const MONTHS_FULL = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MONTHS_SHORT = ['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
