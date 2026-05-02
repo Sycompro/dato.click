@@ -6,3 +6,8 @@ c:\Users\Administrador\Desktop\dato.click\pagina-web\docs\analisis-pos.md
 
 
 psventa.exe
+
+
+Empresa: gymob24
+Usuario: prueba01
+Clave: 123456

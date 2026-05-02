@@ -36,6 +36,7 @@ export async function GET() {
             }
         });
 
+        /* 
         // Procesar confemp01 (Prioridad: Códigos técnicos/POS)
         resMaster.recordset.forEach(c => {
             const base = c.Base.trim();
@@ -59,9 +60,12 @@ export async function GET() {
                 }
             }
         });
+        */
 
         const companies = Array.from(companiesMap.values());
-        console.log(`[API] Validated ${companies.length} active companies`);
+        // Filtrar para asegurar que solo enviamos las oficiales (numéricas) si es necesario,
+        // o simplemente limpiar el log.
+        console.log(`[API] Validated ${companies.length} active official companies`);
 
         return NextResponse.json(companies);
 
