@@ -447,10 +447,53 @@ export default function POSPage() {
                         </div>
                     </div>
 
+                    {/* BARRA DE CATEGORÍAS (NUEVA UBICACIÓN) */}
+                    <div style={{ flexShrink: 0, background: '#f8fafc', padding: '8px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
+                        <button 
+                            onClick={() => setSelectedCategory('Todos')}
+                            style={{
+                                padding: '8px 16px',
+                                borderRadius: '10px',
+                                fontSize: '12px',
+                                fontWeight: 800,
+                                border: 'none',
+                                cursor: 'pointer',
+                                background: selectedCategory === 'Todos' ? '#3b82f6' : '#fff',
+                                color: selectedCategory === 'Todos' ? '#fff' : '#64748b',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            Todos
+                        </button>
+                        {categories.map(cat => (
+                            <button 
+                                key={cat.id} 
+                                onClick={() => setSelectedCategory(cat.id)}
+                                style={{
+                                    padding: '8px 16px',
+                                    borderRadius: '10px',
+                                    fontSize: '12px',
+                                    fontWeight: 800,
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    background: selectedCategory === cat.id ? '#3b82f6' : '#fff',
+                                    color: selectedCategory === cat.id ? '#fff' : '#64748b',
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
+                    </div>
+
                     <div style={{ flexShrink: 0, padding: '16px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                         <div>
-                            <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>{categories.find(c => c.id === selectedCategory)?.name || 'Todos'}</h2>
-                            <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>{loading ? 'Cargando...' : `${products.length} productos disponibles`}</p>
+                            <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                                {selectedCategory === 'Todos' ? 'Todos los Productos' : categories.find(c => c.id === selectedCategory)?.name}
+                            </h2>
+                            <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>{loading ? 'Cargando catálogo...' : `${products.length} artículos encontrados`}</p>
                         </div>
                     </div>
 

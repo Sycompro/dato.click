@@ -22,28 +22,9 @@ export default function Sidebar({ categories, selectedCategory, onSelectCategory
                 <Zap size={18} style={{ color: '#fff', fill: '#fff' }} />
             </div>
 
-            {/* Categorías */}
-            <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', overflowY: 'auto' }}>
-                {categories.map(cat => {
-                    const Icon = cat.icon || LayoutGrid;
-                    const isActive = selectedCategory === cat.id;
-                    return (
-                        <button key={cat.id} onClick={() => onSelectCategory(cat.id)} title={cat.name}
-                            style={{
-                                width: '48px', height: '48px', borderRadius: '12px',
-                                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '2px',
-                                background: isActive ? '#3b82f6' : 'transparent',
-                                color: isActive ? '#fff' : '#64748b',
-                                border: 'none', cursor: 'pointer', transition: 'all 0.15s ease',
-                                position: 'relative',
-                            }}>
-                            <Icon size={16} />
-                            <span style={{ fontSize: '7px', fontWeight: 800, letterSpacing: '-0.02em' }}>
-                                {cat.name.length > 6 ? cat.name.slice(0, 5) : cat.name}
-                            </span>
-                        </button>
-                    );
-                })}
+            {/* Acciones principales / Menu lateral limpio */}
+            <div style={{ flex: 1, width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                <button title="Dashboard" style={activeIconStyle}><LayoutGrid size={22} /></button>
             </div>
 
             {/* Bottom icons */}
@@ -64,4 +45,16 @@ const bottomBtnStyle = {
     background: 'transparent', border: 'none', color: '#475569',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     cursor: 'pointer',
+};
+
+const activeIconStyle = { 
+    width: '48px', height: '48px', 
+    background: 'rgba(59,130,246,0.15)', 
+    borderRadius: '12px', 
+    display: 'flex', 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    color: '#3b82f6', 
+    border: '1px solid rgba(59,130,246,0.2)',
+    cursor: 'pointer'
 };
