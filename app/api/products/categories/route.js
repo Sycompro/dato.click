@@ -9,7 +9,9 @@ export async function GET() {
 
     try {
         const pool = await getConnection(session.user.company);
-        const result = await pool.request().query(`
+        
+        // Intentar primero categorías marcadas para POS
+        let result = await pool.request().query(`
             SELECT DISTINCT 
                 LTRIM(RTRIM(codsub)) as id, 
                 LTRIM(RTRIM(nomsub)) as name 
@@ -18,8 +20,22 @@ export async function GET() {
             ORDER BY nomsub ASC
         `);
 
+        // Si no hay ninguna marcada, traer todas las que tengan productos activos
+        if (result.recordset.length === 0) {
+            result = await pool.request().query(`
+                SELECT DISTINCT 
+                    LTRIM(RTRIM(s.codsub)) as id, 
+                    LTRIM(RTRIM(s.nomsub)) as name 
+                FROM tbl01sbf s
+                INNER JOIN prd0101 p ON s.codsub = p.codsub
+                WHERE p.estado = 1
+                ORDER BY name ASC
+            `);
+        }
+
         return NextResponse.json(result.recordset);
     } catch (err) {
+        console.error('[API/Categories] Error:', err.message);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }

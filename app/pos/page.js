@@ -362,10 +362,11 @@ export default function POSPage() {
                 </div>
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#f8fafc' }}>
-                    <div style={{ flexShrink: 0, background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* BUSCADOR PRINCIPAL Y DOCUMENTO */}
+                    <div style={{ flexShrink: 0, background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ flex: 1, position: 'relative' }}>
                             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                            <input type="text" placeholder="Buscar productos..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 12px 10px 38px', fontSize: '13px', fontWeight: 500, color: '#1e293b', outline: 'none' }} />
+                            <input type="text" placeholder="Buscar productos por nombre o código..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 12px 10px 38px', fontSize: '13px', fontWeight: 500, color: '#1e293b', outline: 'none' }} />
                         </div>
 
                         <div style={{ display: isMobile ? 'none' : 'flex', background: '#f1f5f9', borderRadius: '10px', padding: '3px', gap: '3px', flexShrink: 0 }}>
@@ -386,9 +387,71 @@ export default function POSPage() {
                         </div>
                     </div>
 
-                    <div style={{ flexShrink: 0, padding: '16px 20px 8px' }}>
-                        <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>{selectedCategory}</h2>
-                        <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>{loading ? 'Cargando...' : `${products.length} productos`}</p>
+                    {/* BARRA DE CLIENTE HORIZONTAL (NUEVA) */}
+                    <div style={{ flexShrink: 0, background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                            {/* Buscador de DNI/RUC */}
+                            <div style={{ width: '240px', position: 'relative' }}>
+                                <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={14} />
+                                <input 
+                                    type="text" 
+                                    placeholder="DNI o RUC del cliente..." 
+                                    value={customerSearch}
+                                    onChange={handleCustomerSearch}
+                                    style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, outline: 'none' }}
+                                />
+                                {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '10px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={14} />}
+                            </div>
+
+                            {/* Info Cliente Seleccionado */}
+                            <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
+                                <div style={{ minWidth: '150px' }}>
+                                    <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Cliente</p>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <p style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
+                                        <button onClick={() => setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' })} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Limpiar</button>
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                                    <div style={{ width: '120px' }}>
+                                        <label style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', display: 'block', marginBottom: '2px' }}>CELULAR</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="999..."
+                                            value={customer.phone || ''}
+                                            onChange={e => setCustomer({...customer, phone: e.target.value})}
+                                            style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', fontWeight: 600 }}
+                                        />
+                                    </div>
+                                    <div style={{ width: '140px' }}>
+                                        <CustomDatePicker 
+                                            label="F. NACIMIENTO"
+                                            value={customer.birthdate || ''}
+                                            onChange={val => setCustomer({...customer, birthdate: val})}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                    {customer.isNew && (
+                                        <button onClick={registerCustomer} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <UserPlus size={14} /> Registrar
+                                        </button>
+                                    )}
+                                    <button onClick={() => { setManualDoc(customerSearch); setShowManualModal(true); }} style={{ background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px 12px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                        <ShieldCheck size={14} /> Menor
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style={{ flexShrink: 0, padding: '16px 20px 8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div>
+                            <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>{categories.find(c => c.id === selectedCategory)?.name || 'Todos'}</h2>
+                            <p style={{ fontSize: '11px', color: '#94a3b8', fontWeight: 500 }}>{loading ? 'Cargando...' : `${products.length} productos disponibles`}</p>
+                        </div>
                     </div>
 
                     <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 20px' }}>
@@ -398,7 +461,7 @@ export default function POSPage() {
 
                 <div className={`ticket-aside ${cartVisible ? 'visible' : ''}`} style={{ width: '360px', background: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, borderLeft: '1px solid #e2e8f0' }}>
                     <div style={{ padding: '24px 24px 12px', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                 <div style={{ background: '#3b82f6', color: '#fff', borderRadius: '12px', padding: '8px' }}>
                                     <ShoppingCart size={20} />
@@ -422,65 +485,6 @@ export default function POSPage() {
                                 </button>
                             </div>
                         </div>
-
-                        {/* BUSCADOR DE CLIENTE */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ position: 'relative' }}>
-                                <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={16} />
-                                <input 
-                                    type="text" 
-                                    placeholder="Buscar por DNI o RUC..." 
-                                    value={customerSearch}
-                                    onChange={handleCustomerSearch}
-                                    style={{ width: '100%', padding: '12px 12px 12px 40px', background: '#f8fafc', border: '2px solid #f1f5f9', borderRadius: '12px', fontSize: '14px', fontWeight: 600, outline: 'none' }}
-                                />
-                                {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '12px', top: '35%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={16} />}
-                            </div>
-
-                            <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '12px', border: '1px solid #f1f5f9' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                                    <div>
-                                        <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '4px' }}>Cliente Seleccionado</p>
-                                        <p style={{ fontSize: '13px', fontWeight: 800, color: '#1e293b', margin: 0 }}>{customer.name}</p>
-                                        {customer.ruc && <p style={{ fontSize: '11px', fontWeight: 600, color: '#64748b', margin: '2px 0 0' }}>{customer.ruc} {customer.source && <span style={{ fontSize: '9px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', marginLeft: '4px' }}>{customer.source}</span>}</p>}
-                                    </div>
-                                    <button onClick={() => setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' })} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Limpiar</button>
-                                </div>
-
-                                {/* CAMPOS ADICIONALES (GYM / MEMBRESÍAS) */}
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '12px', borderTop: '1px dashed #e2e8f0', paddingTop: '12px' }}>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <label style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8' }}>CELULAR</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="999..."
-                                            value={customer.phone || ''}
-                                            onChange={e => setCustomer({...customer, phone: e.target.value})}
-                                            style={{ width: '100%', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', fontWeight: 600 }}
-                                        />
-                                    </div>
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                                        <CustomDatePicker 
-                                            label="F. NACIMIENTO"
-                                            value={customer.birthdate || ''}
-                                            onChange={val => setCustomer({...customer, birthdate: val})}
-                                        />
-                                    </div>
-                                </div>
-                                
-                                <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                                    {customer.isNew && (
-                                        <button onClick={registerCustomer} style={{ width: '100%', background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                            <UserPlus size={14} /> Registrar en ERP
-                                        </button>
-                                    )}
-
-                                    <button onClick={() => { setManualDoc(customerSearch); setShowManualModal(true); }} style={{ width: '100%', background: '#fff', color: '#64748b', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '8px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                                        <ShieldCheck size={14} /> Menor o Extranjero
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div style={{ flex: 1, overflowY: 'auto', padding: '8px 12px' }}>
@@ -489,6 +493,45 @@ export default function POSPage() {
 
                     <PaymentSection total={total} availableMethods={availableMethods} paymentMethod={paymentMethod} selectedTar={selectedTar} onSetMethod={m => { setPaymentMethod(m.type); setSelectedTar(m.id === 'EF' ? '' : m.id); }} onFinalize={finalizeSale} loading={isFinalizing} cartEmpty={cart.length === 0} />
                 </div>
+
+                {isMobile && !cartVisible && itemCount > 0 && (
+                    <button onClick={() => setCartVisible(true)} style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 80, background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '20px', padding: '12px 24px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 25px rgba(59,130,246,0.4)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <ShoppingCart size={20} /><span>S/ {total.toFixed(2)}</span><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '8px', fontSize: '12px' }}>{itemCount}</span>
+                    </button>
+                )}
+
+                {orderSuccess && <SuccessModal orderNumber={orderSuccess} onReset={() => setOrderSuccess(null)} onPrint={() => window.print()} />}
+                
+                <CustomerManualModal 
+                    isOpen={showManualModal} 
+                    onClose={() => setShowManualModal(false)} 
+                    initialDoc={manualDoc}
+                    onSave={handleSaveInternal}
+                />
+                
+                <SalesHistoryModal 
+                    isOpen={showHistoryModal} 
+                    onClose={() => setShowHistoryModal(false)} 
+                    idApeCaj={idApeCaj} 
+                />
+
+                <CloseCashModal 
+                    isOpen={showCloseModal} 
+                    onClose={() => setShowCloseModal(false)} 
+                    idApeCaj={idApeCaj}
+                    onConfirm={() => signOut({ callbackUrl: '/auth/signin' })}
+                />
+
+                <CartDetailsModal 
+                    isOpen={showCartModal}
+                    onClose={() => setShowCartModal(false)}
+                    items={cart}
+                    onUpdateQty={updateQuantity}
+                    onRemove={removeFromCart}
+                    onClear={() => { setCart([]); setShowCartModal(false); }}
+                    total={total}
+                />
+            </div>
 
                 {isMobile && !cartVisible && itemCount > 0 && (
                     <button onClick={() => setCartVisible(true)} style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 80, background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '20px', padding: '12px 24px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 25px rgba(59,130,246,0.4)', display: 'flex', alignItems: 'center', gap: '12px' }}>
