@@ -597,7 +597,7 @@ export default function POSPage() {
                                 <p style={{ fontSize: '9px', margin: '2px 0' }}>FECHA IMPRESION: {new Date().toLocaleDateString()} - {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', textAlign: 'left' }}>
                                     <img 
-                                        src={`https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(printData.documentNumber)}&chs=100x100&choe=UTF-8&chld=L|1`} 
+                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(printData.documentNumber)}`} 
                                         alt="QR" 
                                         style={{ width: '70px', height: '70px' }}
                                     />
