@@ -31,12 +31,14 @@ export async function POST(request) {
             const sedeCode = session.user.sedeId?.toString().trim(); // codpto (Punto de Venta)
 
             // Lógica Esquema ERP (dtl_restpos_apecaj)
+            // Validamos si ESTE USUARIO ya tiene una caja abierta
             const check = await pool.request()
                 .input('codpto', sql.Char(2), sedeCode)
-                .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codpto)) = @codpto");
+                .input('codusu', sql.Char(3), userCode)
+                .query("SELECT idapecaj FROM dtl_restpos_apecaj WHERE estado = 0 AND LTRIM(RTRIM(codpto)) = @codpto AND LTRIM(RTRIM(codusu)) = @codusu");
 
             if (check.recordset.length > 0) {
-                return NextResponse.json({ error: 'Ya existe una caja abierta en este punto de venta' }, { status: 400 });
+                return NextResponse.json({ error: 'Tú ya tienes una caja abierta en este punto de venta' }, { status: 400 });
             }
 
             const result = await pool.request()
