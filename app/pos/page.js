@@ -58,6 +58,29 @@ export default function POSPage() {
     const [printData, setPrintData] = useState(null);
     const searchRef = useRef(null);
 
+    // Utilidad para convertir números a letras
+    const numeroALetras = (num) => {
+        const unidades = ['', 'UN', 'DOS', 'TRES', 'CUATRO', 'CINCO', 'SEIS', 'SIETE', 'OCHO', 'NUEVE'];
+        const decenas = ['', 'DIEZ', 'VEINTE', 'TREINTA', 'CUARENTA', 'CINCUENTA', 'SESENTA', 'SETENTA', 'OCHENTA', 'NOVENTA'];
+        const especiales = { 11: 'ONCE', 12: 'DOCE', 13: 'TRECE', 14: 'CATORCE', 15: 'QUINCE' };
+        
+        const entero = Math.floor(num);
+        const decimales = Math.round((num - entero) * 100).toString().padStart(2, '0');
+        
+        let letras = '';
+        if (entero === 0) letras = 'CERO';
+        else if (entero < 10) letras = unidades[entero];
+        else if (entero < 100) {
+            const u = entero % 10;
+            const d = Math.floor(entero / 10);
+            if (especiales[entero]) letras = especiales[entero];
+            else letras = `${decenas[d]}${u > 0 ? ' Y ' + unidades[u] : ''}`;
+        } else if (entero === 100) letras = 'CIEN';
+        else letras = entero.toString();
+        
+        return `${letras} Y ${decimales}/100 SOLES`;
+    };
+
     useEffect(() => {
         setMounted(true);
         const checkSize = () => {
@@ -142,7 +165,7 @@ export default function POSPage() {
                 if (data) {
                     setCustomer({
                         name: data.nomcli,
-                        ruc: data.ruccli,
+                        ruc: data.ruccli || data.nrodni,
                         code: data.codcli,
                         address: data.address,
                         phone: data.phone || '',
@@ -187,7 +210,6 @@ export default function POSPage() {
         if (!customer.isNew) return;
         setIsSearchingCustomer(true);
         try {
-            // Mapeo correcto para la API
             const payload = {
                 nomcli: customer.name,
                 ruccli: customer.ruc.length === 11 ? customer.ruc : '',
@@ -228,7 +250,6 @@ export default function POSPage() {
         if (!cart.length || !idApeCaj) return;
         setIsFinalizing(true);
         try {
-            // 1. Guardar datos extendidos en Railway si existen
             if (customer.phone || customer.birthdate) {
                 const names = customer.name.split(' ');
                 await fetch('/api/customers/register-internal', {
@@ -244,7 +265,6 @@ export default function POSPage() {
                 }).catch(e => console.error('Error saving internal data:', e));
             }
 
-            // 2. Procesar la venta en el ERP (Mapeando a Clientes Varios si es Interno)
             const erpCodCli = (customer.code === 'INTERNO' || customer.code === 'MANUAL') ? '000000' : customer.code;
 
             const res = await fetch('/api/sales/finalize', {
@@ -267,7 +287,7 @@ export default function POSPage() {
                     customer,
                     items: [...cart],
                     total,
-                    date: new Date().toLocaleString(),
+                    date: new Date().toISOString(),
                     salesperson: salespeople.find(v => v.id === selectedSalesperson)?.name
                 };
                 setOrderSuccess(result.documentNumber); 
@@ -353,7 +373,7 @@ export default function POSPage() {
                 />
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#f8fafc' }}>
-                    {/* BUSCADOR PRINCIPAL Y DOCUMENTO */}
+                    {/* BARRA SUPERIOR: BUSCADOR Y DOCUMENTO */}
                     <div style={{ flexShrink: 0, background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 20px', display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ flex: 1, position: 'relative' }}>
                             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
@@ -365,28 +385,16 @@ export default function POSPage() {
                                 <button key={v} onClick={() => setDocType(v)} style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, border: 'none', cursor: 'pointer', background: docType === v ? '#fff' : 'transparent', color: docType === v ? '#3b82f6' : '#64748b', boxShadow: docType === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>{l}</button>
                             ))}
                         </div>
-
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                            <Image 
-                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${session?.user?.email || 'x'}`} 
-                                alt="avatar" 
-                                width={32} 
-                                height={32} 
-                                unoptimized
-                                style={{ borderRadius: '10px', border: '1px solid #e2e8f0' }} 
-                            />
-                        </div>
                     </div>
 
-                    {/* BARRA DE CLIENTE HORIZONTAL (NUEVA) */}
+                    {/* BARRA DE CLIENTE Y VENDEDOR */}
                     <div style={{ flexShrink: 0, background: '#fff', borderBottom: '1px solid #e2e8f0', padding: '12px 20px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                            {/* Buscador de DNI/RUC */}
                             <div style={{ width: '240px', position: 'relative' }}>
                                 <Search style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} size={14} />
                                 <input 
                                     type="text" 
-                                    placeholder="DNI o RUC del cliente..." 
+                                    placeholder="DNI o RUC..." 
                                     value={customerSearch}
                                     onChange={handleCustomerSearch}
                                     style={{ width: '100%', padding: '10px 12px 10px 36px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '12px', fontWeight: 600, outline: 'none' }}
@@ -394,9 +402,7 @@ export default function POSPage() {
                                 {isSearchingCustomer && <Loader2 style={{ position: 'absolute', right: '10px', top: '30%', animation: 'spin 1s linear infinite', color: '#3b82f6' }} size={14} />}
                             </div>
 
-                            {/* Info Vendedor y Cliente */}
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '16px', borderLeft: '1px solid #f1f5f9', paddingLeft: '20px' }}>
-                                {/* Selector de Vendedor */}
                                 <div style={{ minWidth: '130px', borderRight: '1px solid #f1f5f9', paddingRight: '16px' }}>
                                     <p style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '2px' }}>Vendedor</p>
                                     <select 
@@ -416,26 +422,6 @@ export default function POSPage() {
                                     </div>
                                 </div>
 
-                                <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-                                    <div style={{ width: '120px' }}>
-                                        <label style={{ fontSize: '9px', fontWeight: 800, color: '#94a3b8', display: 'block', marginBottom: '2px' }}>CELULAR</label>
-                                        <input 
-                                            type="text" 
-                                            placeholder="999..."
-                                            value={customer.phone || ''}
-                                            onChange={e => setCustomer({...customer, phone: e.target.value})}
-                                            style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '6px 8px', fontSize: '11px', fontWeight: 600 }}
-                                        />
-                                    </div>
-                                    <div style={{ width: '140px' }}>
-                                        <CustomDatePicker 
-                                            label="F. NACIMIENTO"
-                                            value={customer.birthdate || ''}
-                                            onChange={val => setCustomer({...customer, birthdate: val})}
-                                        />
-                                    </div>
-                                </div>
-
                                 <div style={{ display: 'flex', gap: '8px' }}>
                                     {customer.isNew && (
                                         <button onClick={registerCustomer} style={{ background: '#10b981', color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 12px', fontSize: '11px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -447,10 +433,9 @@ export default function POSPage() {
                                     </button>
                                 </div>
 
-                                {/* CATEGORÍA Y CONTADOR (MOVIDO AQUÍ) */}
                                 <div style={{ borderLeft: '1px solid #f1f5f9', paddingLeft: '20px', marginLeft: 'auto', textAlign: 'right' }}>
                                     <h2 style={{ fontSize: '14px', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                                        {selectedCategory === 'Todos' ? 'Todos' : categories.find(c => c.id === selectedCategory)?.name}
+                                        {selectedCategory === 'all' ? 'Todos' : categories.find(c => c.id === selectedCategory)?.name}
                                     </h2>
                                     <p style={{ fontSize: '10px', color: '#94a3b8', fontWeight: 700, margin: 0 }}>{loading ? '...' : `${products.length} artículos`}</p>
                                 </div>
@@ -460,21 +445,15 @@ export default function POSPage() {
 
                     {/* BARRA DE CATEGORÍAS */}
                     <div style={{ flexShrink: 0, background: '#f8fafc', padding: '8px 20px', borderBottom: '1px solid #e2e8f0', display: 'flex', gap: '8px', overflowX: 'auto', whiteSpace: 'nowrap' }} className="no-scrollbar">
-                        {[ {id: 'Todos', name: 'Todos'}, ...categories.filter(c => c.id !== 'Todos' && c.name !== 'Todos') ].map(cat => (
+                        {categories.map(cat => (
                             <button 
                                 key={cat.id} 
                                 onClick={() => setSelectedCategory(cat.id)}
                                 style={{
-                                    padding: '8px 16px',
-                                    borderRadius: '10px',
-                                    fontSize: '12px',
-                                    fontWeight: 800,
-                                    border: 'none',
-                                    cursor: 'pointer',
+                                    padding: '8px 16px', borderRadius: '10px', fontSize: '12px', fontWeight: 800, border: 'none', cursor: 'pointer',
                                     background: selectedCategory === cat.id ? '#3b82f6' : '#fff',
                                     color: selectedCategory === cat.id ? '#fff' : '#64748b',
-                                    boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
-                                    transition: 'all 0.2s'
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.04)', transition: 'all 0.2s'
                                 }}
                             >
                                 {cat.name}
@@ -482,12 +461,12 @@ export default function POSPage() {
                         ))}
                     </div>
 
-
                     <div style={{ flex: 1, overflowY: 'auto', padding: '8px 20px 20px' }}>
                         {loading ? <div className="pos-grid">{Array.from({ length: 12 }).map((_, i) => <div key={i} style={{ background: '#fff', borderRadius: '16px', height: '160px', border: '1px solid #e2e8f0', opacity: 0.5 }} />)}</div> : <div className="pos-grid">{products.map(p => <ProductCard key={p.id} product={p} onAdd={prod => { addToCart(prod); if(isMobile) setCartVisible(true); }} />)}</div>}
                     </div>
                 </div>
 
+                {/* PANEL LATERAL: TICKET ACTUAL */}
                 <div className={`ticket-aside ${cartVisible ? 'visible' : ''}`} style={{ width: '360px', background: '#fff', display: 'flex', flexDirection: 'column', flexShrink: 0, borderLeft: '1px solid #e2e8f0' }}>
                     <div style={{ padding: '24px 24px 12px', borderBottom: '1px solid #f1f5f9' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
@@ -498,20 +477,8 @@ export default function POSPage() {
                                 <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket de Venta</h2>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
-                                <button 
-                                    onClick={() => setCart([])} 
-                                    title="Limpiar Carrito"
-                                    style={{ background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                                >
-                                    <Trash2 size={18} />
-                                </button>
-                                <button 
-                                    onClick={() => setShowCartModal(true)} 
-                                    title="Ver Detalles"
-                                    style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
-                                >
-                                    <LayoutGrid size={18} />
-                                </button>
+                                <button onClick={() => setCart([])} style={{ background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', cursor: 'pointer' }}><Trash2 size={18} /></button>
+                                <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer' }}><LayoutGrid size={18} /></button>
                             </div>
                         </div>
                     </div>
@@ -523,95 +490,114 @@ export default function POSPage() {
                     <PaymentSection total={total} availableMethods={availableMethods} paymentMethod={paymentMethod} selectedTar={selectedTar} onSetMethod={m => { setPaymentMethod(m.type); setSelectedTar(m.id === 'EF' ? '' : m.id); }} onFinalize={finalizeSale} loading={isFinalizing} cartEmpty={cart.length === 0} />
                 </div>
 
-                {isMobile && !cartVisible && itemCount > 0 && (
-                    <button onClick={() => setCartVisible(true)} style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 80, background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '20px', padding: '12px 24px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 25px rgba(59,130,246,0.4)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <ShoppingCart size={20} /><span>S/ {total.toFixed(2)}</span><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '8px', fontSize: '12px' }}>{itemCount}</span>
-                    </button>
-                )}
-
-                {orderSuccess && <SuccessModal orderNumber={orderSuccess} onReset={() => setOrderSuccess(null)} onPrint={() => window.print()} />}
-                
-                <CustomerManualModal 
-                    isOpen={showManualModal} 
-                    onClose={() => setShowManualModal(false)} 
-                    initialDoc={manualDoc}
-                    onSave={handleSaveInternal}
-                />
-                
-                <SalesHistoryModal 
-                    isOpen={showHistoryModal} 
-                    onClose={() => setShowHistoryModal(false)} 
-                    idApeCaj={idApeCaj} 
-                />
-
-                <CloseCashModal 
-                    isOpen={showCloseModal} 
-                    onClose={() => setShowCloseModal(false)} 
-                    idApeCaj={idApeCaj}
-                    onConfirm={() => signOut({ callbackUrl: '/auth/signin' })}
-                />
-
-                <CartDetailsModal 
-                    isOpen={showCartModal}
-                    onClose={() => setShowCartModal(false)}
-                    items={cart}
-                    onUpdateQty={updateQuantity}
-                    onRemove={removeFromCart}
-                    onClear={() => { setCart([]); setShowCartModal(false); }}
-                    total={total}
-                />
-                {isMobile && !cartVisible && itemCount > 0 && (
-                    <button onClick={() => setCartVisible(true)} style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 80, background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '20px', padding: '12px 24px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 25px rgba(59,130,246,0.4)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <ShoppingCart size={20} /><span>S/ {total.toFixed(2)}</span><span style={{ background: 'rgba(255,255,255,0.2)', padding: '2px 8px', borderRadius: '8px', fontSize: '12px' }}>{itemCount}</span>
-                    </button>
-                )}
-
-                {/* COMPONENTE DE IMPRESIÓN OCULTO */}
+                {/* COMPONENTE DE IMPRESIÓN OCULTO - REPLICANDO TUS DISEÑOS EXACTOS */}
                 {printData && (
                     <div id="print-ticket">
                         <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                            <h2 style={{ margin: 0 }}>SYSCOMPRO</h2>
-                            <p style={{ fontSize: '10px', margin: '2px 0' }}>AV. LAS AMERICAS 123</p>
-                            <p style={{ fontSize: '10px', margin: '2px 0' }}>RUC: 20123456789</p>
+                            {/* Logo GIMBRA */}
+                            <div style={{ color: '#e91e63', fontSize: '24px', fontWeight: 'bold', fontFamily: 'serif', fontStyle: 'italic', marginBottom: '2px' }}>GIM.BRA</div>
+                            <div style={{ fontSize: '10px', letterSpacing: '1px', marginBottom: '5px' }}>Lencería Fina</div>
+                            <div style={{ fontSize: '11px', fontWeight: 'bold' }}>R.U.C.: 20603623747</div>
+                            <div style={{ fontSize: '10px', margin: '2px 0' }}>AV. JOSE BALTA NRO. 1362 LAMBAYEQUE - CHICLAYO - CHICLAYO</div>
+                            {printData.docType === '65' && <div style={{ fontSize: '10px' }}>Telf: </div>}
                         </div>
                         
-                        <div style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginBottom: '5px' }}>
-                            <p style={{ margin: '2px 0' }}><b>{printData.docType === '01' ? 'FACTURA' : printData.docType === '03' ? 'BOLETA' : 'NOTA DE VENTA'}</b></p>
-                            <p style={{ margin: '2px 0' }}>Nro: {printData.documentNumber}</p>
-                            <p style={{ margin: '2px 0' }}>Fecha: {printData.date}</p>
-                            <p style={{ margin: '2px 0' }}>Vendedor: {printData.salesperson}</p>
+                        <div style={{ textAlign: 'center', margin: '15px 0', borderTop: '1px solid #000', borderBottom: '1px solid #000', padding: '8px 0' }}>
+                            <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>
+                                {printData.docType === '01' ? 'FACTURA ELECTRÓNICA' : printData.docType === '03' ? 'BOLETA DE VENTA' : 'NOTA DE VENTA'}
+                            </p>
+                            <p style={{ margin: '2px 0', fontSize: '13px', fontWeight: 'bold' }}>Nº {printData.documentNumber}</p>
                         </div>
 
-                        <div style={{ borderBottom: '1px dashed #000', paddingBottom: '5px', marginBottom: '5px' }}>
-                            <p style={{ margin: '2px 0' }}>Cliente: {printData.customer.name}</p>
-                            {printData.customer.ruc && <p style={{ margin: '2px 0' }}>RUC/DNI: {printData.customer.ruc}</p>}
+                        <div style={{ marginBottom: '10px', fontSize: '10px' }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr' }}>
+                                <span>FECHA</span><span>: {new Date(printData.date).toLocaleDateString()}</span>
+                                {printData.docType === '65' && (
+                                    <>
+                                        <span>HORA</span><span>: {new Date(printData.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</span>
+                                    </>
+                                )}
+                                <span>VENDEDOR</span><span>: {printData.salesperson?.toUpperCase()}</span>
+                                <span>{printData.docType === '65' ? 'CONDIC.' : 'COND.VTA'}</span><span>: EFECTIVO</span>
+                                {printData.docType === '01' && (
+                                    <>
+                                        <span>DOC. IDE.</span><span>: R.U.C. {printData.customer.ruc}</span>
+                                    </>
+                                )}
+                                <span>{printData.docType === '65' ? 'SEÑOR' : 'CLIENTE'}</span><span>: {printData.customer.name.toUpperCase()}</span>
+                                {printData.docType === '65' && (
+                                    <>
+                                        <span>DIREC.</span><span>: </span>
+                                    </>
+                                )}
+                            </div>
                         </div>
 
-                        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '5px' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '10px' }}>
                             <thead>
-                                <tr style={{ borderBottom: '1px solid #000' }}>
-                                    <th style={{ textAlign: 'left', fontSize: '10px' }}>DESCR</th>
-                                    <th style={{ textAlign: 'right', fontSize: '10px' }}>CANT</th>
+                                <tr style={{ borderTop: '1px solid #000', borderBottom: '1px solid #000' }}>
+                                    <th style={{ textAlign: 'left', fontSize: '10px', padding: '5px 0' }}>CANT.</th>
+                                    {printData.docType === '65' && <th style={{ textAlign: 'left', fontSize: '10px' }}>U.M.</th>}
+                                    <th style={{ textAlign: 'left', fontSize: '10px' }}>DESCRIPCIÓN</th>
+                                    {printData.docType === '65' && <th style={{ textAlign: 'right', fontSize: '10px' }}>P.UNIT.</th>}
                                     <th style={{ textAlign: 'right', fontSize: '10px' }}>TOTAL</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {printData.items.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td style={{ fontSize: '10px' }}>{item.name}</td>
-                                        <td style={{ textAlign: 'right', fontSize: '10px' }}>{item.quantity}</td>
-                                        <td style={{ textAlign: 'right', fontSize: '10px' }}>{(item.price * item.quantity).toFixed(2)}</td>
+                                    <tr key={idx} style={{ verticalAlign: 'top' }}>
+                                        <td style={{ fontSize: '10px', padding: '5px 0' }}>{item.quantity.toFixed(2)}</td>
+                                        {printData.docType === '65' && <td style={{ fontSize: '10px', padding: '5px 0' }}>UND</td>}
+                                        <td style={{ fontSize: '10px', padding: '5px 2px' }}>{item.name.toUpperCase()}</td>
+                                        {printData.docType === '65' && <td style={{ textAlign: 'right', fontSize: '10px', padding: '5px 0' }}>{item.price.toFixed(2)}</td>}
+                                        <td style={{ textAlign: 'right', fontSize: '10px', padding: '5px 0' }}>{(item.price * item.quantity).toFixed(2)}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
 
-                        <div style={{ textAlign: 'right', paddingTop: '5px', borderTop: '1px solid #000' }}>
-                            <p style={{ fontSize: '14px', fontWeight: 'bold', margin: 0 }}>TOTAL: S/ {printData.total.toFixed(2)}</p>
+                        <div style={{ borderTop: '1px solid #000', paddingTop: '5px' }}>
+                            {printData.docType !== '65' ? (
+                                <div style={{ fontSize: '10px' }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 80px', gap: '4px' }}>
+                                        <span style={{ textAlign: 'right' }}>Total Gravado</span><span>S/:</span><span style={{ textAlign: 'right' }}>{(printData.total / 1.18).toFixed(2)}</span>
+                                        <span style={{ textAlign: 'right' }}>Total Inafecto</span><span>S/:</span><span style={{ textAlign: 'right' }}>0.00</span>
+                                        <span style={{ textAlign: 'right' }}>Exonerado</span><span>S/:</span><span style={{ textAlign: 'right' }}>0.00</span>
+                                        <span style={{ textAlign: 'right' }}>I.G.V.</span><span>S/:</span><span style={{ textAlign: 'right' }}>{(printData.total - (printData.total / 1.18)).toFixed(2)}</span>
+                                        <span style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '12px' }}>TOTAL</span><span style={{ fontWeight: 'bold', fontSize: '12px' }}>S/:</span><span style={{ textAlign: 'right', fontWeight: 'bold', fontSize: '12px' }}>{printData.total.toFixed(2)}</span>
+                                    </div>
+                                    <p style={{ fontSize: '9px', marginTop: '10px', fontWeight: 'bold' }}>
+                                        SON : {numeroALetras(printData.total)}
+                                    </p>
+                                </div>
+                            ) : (
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 40px 80px', fontSize: '12px', fontWeight: 'bold' }}>
+                                    <span>TOTAL</span><span>S/:</span><span style={{ textAlign: 'right' }}>{printData.total.toFixed(2)}</span>
+                                </div>
+                            )}
                         </div>
                         
+                        {printData.docType !== '65' && (
+                            <div style={{ marginTop: '15px', borderTop: '1px solid #000', paddingTop: '10px', textAlign: 'center' }}>
+                                <p style={{ fontSize: '9px', margin: '2px 0' }}>STATUS: &lt;REIMPRESION&gt;</p>
+                                <p style={{ fontSize: '9px', margin: '2px 0' }}>FECHA IMPRESION: {new Date().toLocaleDateString()} - {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true })}</p>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px', textAlign: 'left' }}>
+                                    <img 
+                                        src={`https://chart.googleapis.com/chart?cht=qr&chl=${encodeURIComponent(printData.documentNumber)}&chs=100x100&choe=UTF-8&chld=L|1`} 
+                                        alt="QR" 
+                                        style={{ width: '70px', height: '70px' }}
+                                    />
+                                    <div style={{ fontSize: '8px', lineHeight: '1.2' }}>
+                                        Representación impresa de {printData.docType === '01' ? 'Factura' : 'Boleta'} Electrónica. 
+                                        Podrá ser consultada en https://www.prolineapp.pe
+                                    </div>
+                                </div>
+                                <p style={{ fontSize: '8px', marginTop: '10px' }}>Autorizado por resolución N°287-2017/SUNAT</p>
+                            </div>
+                        )}
+
                         <div style={{ textAlign: 'center', marginTop: '15px' }}>
-                            <p style={{ fontSize: '10px' }}>¡Gracias por su compra!</p>
+                            <p style={{ fontSize: '10px' }}>{printData.docType === '65' ? '¡ Gracias por su preferencia !' : '¡Gracias por su compra!'}</p>
                         </div>
                     </div>
                 )}
@@ -624,45 +610,11 @@ export default function POSPage() {
                     />
                 )}
                 
-                <CustomerManualModal 
-                    isOpen={showManualModal} 
-                    onClose={() => setShowManualModal(false)} 
-                    initialDoc={manualDoc}
-                    onSave={handleSaveInternal}
-                />
-                
-                <SalesHistoryModal 
-                    isOpen={showHistoryModal} 
-                    onClose={() => setShowHistoryModal(false)} 
-                    idApeCaj={idApeCaj} 
-                    onPrint={handlePrint}
-                />
-
-                <CloseCashModal 
-                    isOpen={showCloseModal} 
-                    onClose={() => setShowCloseModal(false)} 
-                    idApeCaj={idApeCaj}
-                    onConfirm={() => signOut({ callbackUrl: '/auth/signin' })}
-                />
-
-                <CartDetailsModal 
-                    isOpen={showCartModal}
-                    onClose={() => setShowCartModal(false)}
-                    items={cart}
-                    onUpdateQty={updateQuantity}
-                    onRemove={removeFromCart}
-                    onClear={() => { setCart([]); setShowCartModal(false); }}
-                    total={total}
-                />
+                <CustomerManualModal isOpen={showManualModal} onClose={() => setShowManualModal(false)} initialDoc={manualDoc} onSave={handleSaveInternal} />
+                <SalesHistoryModal isOpen={showHistoryModal} onClose={() => setShowHistoryModal(false)} idApeCaj={idApeCaj} onPrint={handlePrint} />
+                <CloseCashModal isOpen={showCloseModal} onClose={() => setShowCloseModal(false)} idApeCaj={idApeCaj} onConfirm={() => signOut({ callbackUrl: '/auth/signin' })} />
+                <CartDetailsModal isOpen={showCartModal} onClose={() => setShowCartModal(false)} items={cart} onUpdateQty={updateQuantity} onRemove={removeFromCart} onClear={() => { setCart([]); setShowCartModal(false); }} total={total} />
             </div>
         </>
     );
 }
-
-const sidebarStyle = { width: '80px', background: '#0f172a', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', flexShrink: 0, borderRight: '1px solid rgba(255,255,255,0.05)' };
-const logoStyle = { width: '44px', height: '44px', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', boxShadow: '0 8px 20px rgba(37,99,235,0.3)' };
-const activeIconStyle = { width: '56px', height: '56px', background: 'rgba(59,130,246,0.15)', borderRadius: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#3b82f6', border: '1px solid rgba(59,130,246,0.2)' };
-const inactiveIconStyle = { width: '56px', height: '56px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748b', transition: 'all 0.2s', cursor: 'pointer' };
-const sidebarBtnStyle = { background: 'none', border: 'none', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#64748b', cursor: 'pointer', padding: '8px 0', width: '100%' };
-const logoutBtnStyle = { ...sidebarBtnStyle, color: '#ef4444' };
-const btnLabelStyle = { fontSize: '9px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' };
