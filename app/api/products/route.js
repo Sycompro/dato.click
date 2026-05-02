@@ -35,6 +35,7 @@ export async function GET(request) {
     let sqlQuery = `
       SELECT TOP 50 
         RTRIM(codi) as code, 
+        RTRIM(codf) as userCode, 
         RTRIM(descr) as name, 
         RTRIM(marc) as brand, 
         RTRIM(umed) as unit, 

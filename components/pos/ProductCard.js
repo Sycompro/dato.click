@@ -75,10 +75,10 @@ export default function ProductCard({ product, onAdd }) {
                     }}>{product.name}</p>
                     <p style={{
                         fontSize: '10px',
-                        color: '#94a3b8',
-                        fontFamily: 'monospace',
+                        fontWeight: 700,
+                        color: '#64748b',
                         marginTop: '2px',
-                    }}>{product.code || product.id}</p>
+                    }}>{product.userCode || product.code || product.id}</p>
                 </div>
             </div>
 

@@ -34,6 +34,7 @@ export async function GET(request) {
         const result = await request.query(`
             SELECT TOP 50 
                 RTRIM(codi) as id, 
+                RTRIM(codf) as userCode, 
                 RTRIM(descr) as name, 
                 pvns as price, 
                 ${stockField} as stock 
@@ -43,6 +44,7 @@ export async function GET(request) {
 
         const products = result.recordset.map(r => ({
             id: r.id.trim(),
+            userCode: r.userCode?.trim() || '',
             name: r.name.trim(),
             price: r.price,
             stock: r.stock
