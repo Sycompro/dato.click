@@ -320,6 +320,7 @@ export default function POSPage() {
                 <Sidebar 
                     onSignOut={() => signOut({ callbackUrl: '/auth/signin' })} 
                     onOpenCloseCash={() => setShowCloseModal(true)}
+                    onOpenHistory={() => setShowHistoryModal(true)}
                 />
 
                 <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, background: '#f8fafc' }}>

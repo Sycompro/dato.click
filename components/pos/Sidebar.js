@@ -1,7 +1,7 @@
 'use client';
 import { LayoutGrid, ShoppingBag, Zap, Sparkles, History, Settings, LogOut, Lock } from 'lucide-react';
 
-export default function Sidebar({ onSignOut, onOpenCloseCash }) {
+export default function Sidebar({ onSignOut, onOpenCloseCash, onOpenHistory }) {
     return (
         <aside style={{
             width: '68px',
@@ -29,6 +29,7 @@ export default function Sidebar({ onSignOut, onOpenCloseCash }) {
 
             {/* Bottom icons */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', marginTop: 'auto' }}>
+                <button onClick={onOpenHistory} title="Historial de Ventas" style={bottomBtnStyle}><History size={18} /></button>
                 <button onClick={onOpenCloseCash} title="Cerrar Caja" style={bottomBtnStyle}><Lock size={18} /></button>
                 <button title="Ajustes" style={bottomBtnStyle}><Settings size={18} /></button>
                 <button onClick={onSignOut} title="Salir" style={{ ...bottomBtnStyle, color: '#f87171' }}>
