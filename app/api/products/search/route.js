@@ -37,7 +37,10 @@ export async function GET(request) {
                 RTRIM(codf) as userCode, 
                 RTRIM(descr) as name, 
                 pvns as price, 
-                ${stockField} as stock 
+                CASE 
+                    WHEN ${stockField} > 0 THEN ${stockField} 
+                    ELSE stoc 
+                END as stock 
             FROM prd0101 
             WHERE ${whereClause}
         `);

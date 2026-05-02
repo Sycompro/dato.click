@@ -31,7 +31,7 @@ export async function GET(request) {
 
     const stockField = `stk${warehouse.padStart(2, '0')}`;
     
-    // 2. Consulta optimizada
+    // 2. Consulta optimizada con lógica de stock inteligente (Sede > Total)
     let sqlQuery = `
       SELECT TOP 50 
         RTRIM(codi) as code, 
@@ -40,7 +40,10 @@ export async function GET(request) {
         RTRIM(marc) as brand, 
         RTRIM(umed) as unit, 
         pvns as price, 
-        ${stockField} as stock
+        CASE 
+          WHEN ${stockField} > 0 THEN ${stockField} 
+          ELSE stoc 
+        END as stock
       FROM prd0101
       WHERE estado = 1
     `;
