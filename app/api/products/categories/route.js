@@ -10,13 +10,13 @@ export async function GET() {
     try {
         const pool = await getConnection(session.user.company);
         
-        // Intentar primero categorías marcadas para POS
+        // Intentar primero categorías marcadas para POS (Compatible con CHAR e INT)
         let result = await pool.request().query(`
             SELECT DISTINCT 
                 LTRIM(RTRIM(codsub)) as id, 
                 LTRIM(RTRIM(nomsub)) as name 
             FROM tbl01sbf 
-            WHERE restpos = 'S' OR restpos = '1'
+            WHERE LTRIM(RTRIM(CAST(restpos AS VARCHAR))) IN ('S', '1')
             ORDER BY name ASC
         `);
 
