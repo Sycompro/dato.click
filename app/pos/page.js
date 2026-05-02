@@ -243,6 +243,7 @@ export default function POSPage() {
             if (ex) return prev.map(i => i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
             return [...prev, { ...product, quantity: 1 }];
         });
+    };
     const updateQuantity = (id, delta) =>
         setCart(prev => prev.map(i => i.id === id ? { ...i, quantity: Math.max(1, i.quantity + delta) } : i));
 
