@@ -176,9 +176,9 @@ export async function POST(request) {
             documentNumber: ndocu
         });
 
-    } catch (err) {
+    } catch (error) {
         if (transaction) await transaction.rollback();
-        console.error('Transaction error:', err);
-        return NextResponse.json({ error: 'Error al procesar la venta', details: err.message }, { status: 500 });
+        console.error('Transaction error:', error);
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
