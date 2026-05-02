@@ -81,6 +81,8 @@ export default function POSPage() {
         return `${letras} Y ${decimales}/100 SOLES`;
     };
 
+    const [companySettings, setCompanySettings] = useState(null);
+
     useEffect(() => {
         setMounted(true);
         const checkSize = () => {
@@ -96,9 +98,11 @@ export default function POSPage() {
             fetch('/api/payment-methods').then(r => r.json()).catch(() => []),
             fetch('/api/products/categories').then(r => r.json()).catch(() => []),
             fetch('/api/salespeople').then(r => r.json()).catch(() => []),
-        ]).then(([cashData, methodsData, catsData, salesData]) => {
+            fetch('/api/company/settings').then(r => r.json()).catch(() => null),
+        ]).then(([cashData, methodsData, catsData, salesData, settingsData]) => {
             if (cashData?.id) setIdApeCaj(cashData.id);
             if (Array.isArray(methodsData)) setAvailableMethods(methodsData);
+            if (settingsData) setCompanySettings(settingsData);
             if (Array.isArray(salesData)) {
                 setSalespeople(salesData);
                 if (salesData.length > 0) setSelectedSalesperson(salesData[0].id);
@@ -490,19 +494,25 @@ export default function POSPage() {
                     <PaymentSection total={total} availableMethods={availableMethods} paymentMethod={paymentMethod} selectedTar={selectedTar} onSetMethod={m => { setPaymentMethod(m.type); setSelectedTar(m.id === 'EF' ? '' : m.id); }} onFinalize={finalizeSale} loading={isFinalizing} cartEmpty={cart.length === 0} />
                 </div>
 
-                {/* COMPONENTE DE IMPRESIÓN OCULTO - REPLICANDO TUS DISEÑOS EXACTOS */}
+                {/* COMPONENTE DE IMPRESIÓN OCULTO - 100% DINÁMICO */}
                 {printData && (
                     <div id="print-ticket">
                         <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                            {/* Logo GIMBRA */}
-                            <div style={{ color: '#e91e63', fontSize: '24px', fontWeight: 'bold', fontFamily: 'serif', fontStyle: 'italic', marginBottom: '2px' }}>GIM.BRA</div>
-                            <div style={{ fontSize: '10px', letterSpacing: '1px', marginBottom: '5px' }}>Lencería Fina</div>
-                            <div style={{ fontSize: '11px', fontWeight: 'bold' }}>R.U.C.: 20603623747</div>
-                            <div style={{ fontSize: '10px', margin: '2px 0' }}>AV. JOSE BALTA NRO. 1362 LAMBAYEQUE - CHICLAYO - CHICLAYO</div>
-                            {printData.docType === '65' && <div style={{ fontSize: '10px' }}>Telf: </div>}
+                            {/* Nombre Dinámico de la Empresa */}
+                            <div style={{ color: '#000', fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '2px' }}>
+                                {companySettings?.company?.name || 'MI EMPRESA'}
+                            </div>
+                            <div style={{ fontSize: '11px', fontWeight: 'bold' }}>R.U.C.: {companySettings?.company?.ruc || '00000000000'}</div>
+                            <div style={{ fontSize: '10px', margin: '2px 0' }}>{companySettings?.company?.address || ''}</div>
+                            
+                            {/* Nombre de la Tienda/Sucursal */}
+                            <div style={{ fontSize: '10px', fontWeight: 'bold', marginTop: '4px', textTransform: 'uppercase' }}>
+                                SUCURSAL: {companySettings?.pointOfSale?.name || 'TIENDA'}
+                            </div>
+                            {companySettings?.company?.phone && <div style={{ fontSize: '10px' }}>Telf: {companySettings.company.phone}</div>}
                         </div>
                         
-                        <div style={{ textAlign: 'center', margin: '15px 0', borderTop: '1px solid #000', borderBottom: '1px solid #000', padding: '8px 0' }}>
+                        <div style={{ textAlign: 'center', margin: '12px 0', borderTop: '1px solid #000', borderBottom: '1px solid #000', padding: '6px 0' }}>
                             <p style={{ margin: 0, fontSize: '13px', fontWeight: 'bold' }}>
                                 {printData.docType === '01' ? 'FACTURA ELECTRÓNICA' : printData.docType === '03' ? 'BOLETA DE VENTA' : 'NOTA DE VENTA'}
                             </p>
