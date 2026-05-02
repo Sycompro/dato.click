@@ -31,12 +31,14 @@ export async function POST(request) {
             const sedeCode = session.user.sedeId?.toString().trim(); // codpto (char 2)
 
             const now = new Date();
-            const timeStr = now.toLocaleTimeString('en-US', { 
+            const yearSuffix = now.getFullYear().toString().slice(-2);
+            const rawTime = now.toLocaleTimeString('en-US', { 
                 hour: '2-digit', 
                 minute: '2-digit', 
                 second: '2-digit', 
                 hour12: true 
             });
+            const timeStr = `${yearSuffix} ${rawTime}`; // Ejemplo: "26 01:30:00 PM"
 
             // Lógica Esquema ERP (dtl_restpos_apecaj)
             // Validamos si ESTE USUARIO ya tiene una caja abierta
