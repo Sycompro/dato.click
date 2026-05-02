@@ -47,9 +47,11 @@ export async function POST(request) {
         const nextNdocu = incrementCorrelative(ndocu);
 
         // 2. Calcular totales (Navasoft: totn=Total, tota=Afecto, toti=IGV)
+        // Nota de Venta (65) no desglosa IGV en cabecera
         const totalVenta = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
-        const totalAfecto = totalVenta / 1.18;
-        const totalIGV = totalVenta - totalAfecto;
+        const isNota = (docType === '65');
+        const totalAfecto = isNota ? totalVenta : (totalVenta / 1.18);
+        const totalIGV = isNota ? 0 : (totalVenta - totalAfecto);
 
         // Definir Flags según estándar Navasoft
         const flagValue = '0';
@@ -99,9 +101,11 @@ export async function POST(request) {
             const item = items[i];
 
             // Insertar Detalle
-            const itemPriceNeto = item.price / 1.18;
-            const itemTotalNeto = itemPriceNeto * item.quantity;
+            // Desglose de montos por ítem según tipo de documento
             const itemTotalConIGV = item.price * item.quantity;
+            const itemPriceNeto = isNota ? item.price : (item.price / 1.18);
+            const itemTotalNeto = isNota ? itemTotalConIGV : (itemPriceNeto * item.quantity);
+            const itemAigv = isNota ? 'N' : 'S';
 
             await transaction.request()
                 .input('fecha', sql.DateTime, todayDate)
@@ -117,7 +121,7 @@ export async function POST(request) {
                 .input('totn', sql.Decimal(18, 4), itemTotalConIGV)
                 .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
                 .input('flag', sql.Char(1), flagValue)
-                .input('aigv', sql.Char(1), 'S')
+                .input('aigv', sql.Char(1), itemAigv)
                 .input('mone', sql.Char(1), 'S')
                 .input('msto', sql.Char(1), 'S')
                 .query(`
