@@ -73,11 +73,11 @@ export async function POST(request) {
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
             .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
             .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
-            .input('totn', sql.Float, totalVenta)   // TOTAL
-            .input('toti', sql.Float, totalIGV)     // IGV
-            .input('tota', sql.Float, totalAfecto)  // AFECTO (Base)
-            .input('mone', sql.Char(1), currency)
-            .input('tcam', sql.Float, exchangeRate)
+            .input('totn', sql.Decimal(18, 4), totalVenta)   // TOTAL
+            .input('toti', sql.Decimal(18, 4), totalIGV)     // IGV
+            .input('tota', sql.Decimal(18, 4), totalAfecto)  // AFECTO (Base)
+            .input('mone', sql.Char(1), currency || 'S')
+            .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
             .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
             .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
             .input('idapecaj', sql.Int, idApeCaj)
@@ -89,9 +89,10 @@ export async function POST(request) {
             .input('codcdv', sql.Char(2), '01')
             .input('codvta', sql.Char(2), '01')
             .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
+            .input('codsub', sql.Char(2), '03')
             .query(`
-                INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact, Codcdv, codvta, codven)
-                VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact, @codcdv, @codvta, @codven)
+                INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codtar, codusu, flag, tfact, Codcdv, codvta, codven, codsub)
+                VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codtar, @codusu, @flag, @tfact, @codcdv, @codvta, @codven, @codsub)
             `);
 
         // 4. Insertar Detalle (dtl01fac) y Actualizar Stock
@@ -156,16 +157,17 @@ export async function POST(request) {
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
             .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
             .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
-            .input('monto', sql.Float, totalVenta)
-            .input('saldo', sql.Float, totalVenta)
+            .input('monto', sql.Decimal(18, 4), totalVenta)
+            .input('saldo', sql.Decimal(18, 4), totalVenta)
             .input('fven', sql.DateTime, todayDate)
             .input('mone', sql.Char(1), 'S')
-            .input('tcam', sql.Float, 1)
+            .input('tcam', sql.Decimal(18, 4), 1)
             .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
             .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
+            .input('codsub', sql.Char(2), '03')
             .query(`
-                INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto)
-                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, '01', @monto, @saldo, @fven, @mone, @tcam, '0', '0', @codven, @codpto)
+                INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto, codsub)
+                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, '01', @monto, @saldo, @fven, @mone, @tcam, '0', '0', @codven, @codpto, @codsub)
             `);
 
         await transaction.commit();
