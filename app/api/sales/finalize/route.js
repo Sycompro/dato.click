@@ -148,6 +148,7 @@ export async function POST(request) {
                 .input('flag', sql.Char(1), flagValue)
                 .input('aigv', sql.Char(1), itemAigv)
                 .input('mone', sql.Char(1), 'S')
+                .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
                 .input('msto', sql.Char(1), 'S')
                 .query(`
                     INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, codcli, codven, codvta, codcdv, flag, aigv, mone, moneitm, tcam, msto)
