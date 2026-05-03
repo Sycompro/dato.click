@@ -197,6 +197,22 @@ export async function POST(request) {
                 VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, '01', @monto, @saldo, @fven, @mone, @tcam, '0', '0', @codven, @codpto, @codsub, @compro_ccc, @codscc)
             `);
 
+        // 6. Insertar en dtl01ccc (Solo Factura necesita esto para visibilidad en caja)
+        if (docType === '01') {
+            await transaction.request()
+                .input('fecha', sql.DateTime, todayDate)
+                .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
+                .input('cdocu', sql.Char(2), docType)
+                .input('ndocu', sql.Char(12), ndocu)
+                .input('monto', sql.Decimal(18, 4), totalVenta)
+                .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
+                .input('glosa', sql.Char(50), (items[0]?.name || 'VENTA WEB').substring(0, 50))
+                .query(`
+                    INSERT INTO dtl01ccc (fecha, codcli, tmov, cdocu, ndocu, crefe, nrefe, glosa, cargo, abono, mone, tcam, cpago, mpago, npago, ipago, nplan, idunico, fecreg, compro)
+                    VALUES (@fecha, @codcli, 'C', @cdocu, @ndocu, @cdocu, @ndocu, @glosa, @monto, 0, 'S', @tcam, '', '', '', 0, '', NEWID(), GETDATE(), '03/')
+                `);
+        }
+
         await transaction.commit();
 
         return NextResponse.json({
