@@ -144,7 +144,7 @@ export async function POST(request) {
                 .input('msto', sql.Char(1), 'S')
                 .query(`
                     INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, codcli, codven, codvta, codcdv, flag, aigv, mone, moneitm, tcam, msto)
-                    VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @codalm, @codcli, @codven, @codvta, @codcdv, @flag, @aigv, @mone, @mone, 1, @msto)
+                    VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @codalm, @codcli, @codven, @codvta, @codcdv, @flag, @aigv, @mone, @mone, @tcam, @msto)
                 `);
 
             // Actualizar Stock (Almacén + Consolidado)
@@ -178,7 +178,7 @@ export async function POST(request) {
             .input('saldo', sql.Decimal(18, 4), totalVenta)
             .input('fven', sql.DateTime, todayDate)
             .input('mone', sql.Char(1), 'S')
-            .input('tcam', sql.Decimal(18, 4), 1)
+            .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
             .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
             .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
             .input('codsub', sql.Char(2), isCard ? '03' : '01')

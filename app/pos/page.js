@@ -46,6 +46,7 @@ export default function POSPage() {
     const [showCloseModal, setShowCloseModal] = useState(false);
     const [manualDoc, setManualDoc] = useState('');
     const [orderSuccess, setOrderSuccess] = useState(null);
+    const [exchangeRate, setExchangeRate] = useState(1);
     const [mounted, setMounted] = useState(false);
     const [categories, setCategories] = useState([
         { id: 'all', name: 'Todos', icon: LayoutGrid }
@@ -101,6 +102,7 @@ export default function POSPage() {
             fetch('/api/company/settings').then(r => r.json()).catch(() => null),
         ]).then(([cashData, methodsData, catsData, salesData, settingsData]) => {
             if (cashData?.id) setIdApeCaj(cashData.id);
+            if (cashData?.exchangeRate) setExchangeRate(cashData.exchangeRate);
             if (Array.isArray(methodsData)) setAvailableMethods(methodsData);
             if (settingsData) setCompanySettings(settingsData);
             if (Array.isArray(salesData)) {
@@ -284,7 +286,8 @@ export default function POSPage() {
                     ruccli: customer.ruc, 
                     items: cart,
                     idApeCaj, paymentMethod, codtar: selectedTar, warehouse,
-                    codven: selectedSalesperson
+                    codven: selectedSalesperson,
+                    exchangeRate
                 })
             });
             const result = await res.json();

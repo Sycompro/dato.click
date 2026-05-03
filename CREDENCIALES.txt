@@ -9,16 +9,14 @@ psventa.exe
 
 
 GYMprueba
-Usuario: prueba02
-Clave: 127456
+Usuario: prueba01
+Clave: 123456
 
 
 
 
-numero de celular
-Fecha de Nacimiento
 
-esos datos tambien los necesito en cliente que si esten en sunat o reniec o en el ERP para empresas de GYM o gestion de memebresias 
-
-
-analizalo 
+GIM.BRA S.A.C.
+R.U.C.: 20603623747
+AV. JOSE BALTA NRO. 1362 LAMBAYEQUE -
+CHICLAYO - CHICLAYO
