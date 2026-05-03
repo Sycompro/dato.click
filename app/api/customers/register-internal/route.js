@@ -24,7 +24,19 @@ export async function POST(request) {
             END
         `);
 
-        // 2. Insertar o actualizar cliente interno
+        // 2. Verificar si el cliente ya existe en Navasoft para evitar duplicidad en Railway
+        const erpCheck = await pool.request()
+            .input('doc', sql.VarChar(20), doc)
+            .query("SELECT codcli FROM mst01cli WHERE ruccli = @doc OR nrodni = @doc");
+
+        if (erpCheck.recordset.length > 0) {
+            return NextResponse.json({ 
+                success: true, 
+                message: 'El cliente ya existe en Navasoft. Los datos se actualizarán directamente en el ERP al finalizar la venta.' 
+            });
+        }
+
+        // 3. Insertar o actualizar cliente interno
         await pool.request()
             .input('doc', sql.VarChar(20), doc)
             .input('name', sql.VarChar(100), name)

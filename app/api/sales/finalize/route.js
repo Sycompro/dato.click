@@ -215,6 +215,22 @@ export async function POST(request) {
                 `);
         }
 
+        // 7. Actualizar ficha de cliente en Navasoft (si aplica)
+        if (codcli && codcli !== '000000' && codcli !== 'NUEVO_ERP' && codcli !== 'INTERNO') {
+            const customerPhone = body.phone || '';
+            const customerBirthdate = body.birthdate ? new Date(body.birthdate) : null;
+
+            await transaction.request()
+                .input('codcli', sql.Char(6), codcli.substring(0, 6))
+                .input('celcli', sql.VarChar(40), customerPhone)
+                .input('fecnac', sql.DateTime, customerBirthdate)
+                .query(`
+                    UPDATE mst01cli 
+                    SET celcli = @celcli, fecnac = @fecnac 
+                    WHERE codcli = @codcli
+                `);
+        }
+
         await transaction.commit();
 
         return NextResponse.json({

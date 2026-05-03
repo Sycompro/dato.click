@@ -19,15 +19,17 @@ export async function GET(request) {
         // 1. Buscar en Navasoft (ERP) - Datos Oficiales
         const erpResult = await pool.request()
             .input('query', sql.VarChar(20), query)
-            .query("SELECT TOP 1 codcli, nomcli, ruccli, nrodni, dircli FROM mst01cli WHERE ruccli = @query OR nrodni = @query");
+            .query("SELECT TOP 1 codcli, nomcli, ruccli, nrodni, dircli, telcli, celcli, fecnac FROM mst01cli WHERE ruccli = @query OR nrodni = @query");
 
         if (erpResult.recordset.length > 0) {
             const cli = erpResult.recordset[0];
             finalData = {
                 codcli: cli.codcli.trim(),
                 nomcli: cli.nomcli.trim(),
-                ruccli: cli.ruccli.trim() || cli.nrodni.trim(),
-                address: cli.dircli.trim(),
+                ruccli: (cli.ruccli || cli.nrodni || '').trim(),
+                address: (cli.dircli || '').trim(),
+                phone: (cli.celcli || cli.telcli || '').trim(),
+                birthdate: cli.fecnac ? new Date(cli.fecnac).toISOString().split('T')[0] : '',
                 source: 'ERP'
             };
             source = 'ERP';
@@ -80,10 +82,13 @@ export async function GET(request) {
                     };
                 }
 
-                // Inyectamos los datos extras de Railway (Celular y Nacimiento)
-                finalData.phone = intCli.phone || '';
-                finalData.birthdate = intCli.birthdate || '';
-                if (finalData.source === 'ERP') finalData.source = 'ERP + RAILWAY';
+                // Solo inyectamos los datos de Railway si el ERP los tiene vacíos
+                if (!finalData.phone) finalData.phone = intCli.phone || '';
+                if (!finalData.birthdate) finalData.birthdate = intCli.birthdate || '';
+                
+                if (finalData.source === 'ERP' && (intCli.phone || intCli.birthdate)) {
+                    finalData.source = 'ERP (Con respaldo Railway)';
+                }
             }
         } catch (e) {
             console.log('Internal table check failed/empty');
