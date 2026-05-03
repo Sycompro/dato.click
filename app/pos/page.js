@@ -162,6 +162,8 @@ export default function POSPage() {
         const val = e.target.value.replace(/[^0-9]/g, '');
         setCustomerSearch(val);
         
+        if (val.length === 11) setDocType('01');
+        
         if (val.length === 8 || val.length === 11) {
             setIsSearchingCustomer(true);
             try {
@@ -392,9 +394,32 @@ export default function POSPage() {
                         </div>
 
                         <div style={{ display: isMobile ? 'none' : 'flex', background: '#f1f5f9', borderRadius: '10px', padding: '3px', gap: '3px', flexShrink: 0 }}>
-                            {[{ v: '03', l: 'Boleta' }, { v: '01', l: 'Factura' }, { v: '65', l: 'Nota Venta' }].map(({ v, l }) => (
-                                <button key={v} onClick={() => setDocType(v)} style={{ padding: '8px 12px', borderRadius: '8px', fontSize: '11px', fontWeight: 700, border: 'none', cursor: 'pointer', background: docType === v ? '#fff' : 'transparent', color: docType === v ? '#3b82f6' : '#64748b', boxShadow: docType === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none' }}>{l}</button>
-                            ))}
+                            {[{ v: '03', l: 'Boleta' }, { v: '01', l: 'Factura' }, { v: '65', l: 'Nota Venta' }].map(({ v, l }) => {
+                                const isRuc = customerSearch.length === 11;
+                                const isDisabled = isRuc && v !== '01';
+                                return (
+                                    <button 
+                                        key={v} 
+                                        disabled={isDisabled}
+                                        onClick={() => setDocType(v)} 
+                                        style={{ 
+                                            padding: '8px 12px', 
+                                            borderRadius: '8px', 
+                                            fontSize: '11px', 
+                                            fontWeight: 700, 
+                                            border: 'none', 
+                                            cursor: isDisabled ? 'not-allowed' : 'pointer', 
+                                            background: docType === v ? '#fff' : 'transparent', 
+                                            color: isDisabled ? '#cbd5e1' : (docType === v ? '#3b82f6' : '#64748b'), 
+                                            boxShadow: docType === v ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
+                                            opacity: isDisabled ? 0.6 : 1,
+                                            transition: 'all 0.2s ease'
+                                        }}
+                                    >
+                                        {l}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
 
