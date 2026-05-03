@@ -100,6 +100,8 @@ export async function POST(request) {
                 .input('compro', sql.Char(6), comproBase)
                 .input('codscc', sql.Char(2), codscc)
                 .input('codusu', sql.Char(3), 'POS') // Solo 3 caracteres permitidos
+                .input('monrecib', sql.Char(1), 'S')
+                .input('monvuelto', sql.Char(1), 'S')
                 .input('flag', sql.Char(1), flagValue)
                 .input('tfact', sql.Char(1), tfactValue)
                 .input('codcdv', sql.Char(2), '01')
@@ -107,8 +109,8 @@ export async function POST(request) {
                 .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
                 .input('codsub', sql.Char(2), isCard ? '03' : '01')
                 .query(`
-                    INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codscc, codusu, flag, tfact, Codcdv, codvta, codven, codsub)
-                    VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codscc, @codusu, @flag, @tfact, @codcdv, @codvta, @codven, @codsub)
+                    INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codscc, codusu, monrecib, monvuelto, flag, tfact, Codcdv, codvta, codven, codsub)
+                    VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codscc, @codusu, @monrecib, @monvuelto, @flag, @tfact, @codcdv, @codvta, @codven, @codsub)
                 `);
         } catch (sqlErr) {
             console.error('SQL Error in mst01fac:', sqlErr);
