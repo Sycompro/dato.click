@@ -6,7 +6,7 @@ import {
     Search, ShoppingCart, User, Plus, Minus, X, Check, 
     ChevronRight, Loader2, UserPlus, ShieldCheck, Trash2, 
     LayoutGrid, Clock, Settings, LogOut, ShoppingBag, Zap, Sparkles, Package,
-    Lock
+    Lock, Phone
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
