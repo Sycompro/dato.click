@@ -46,6 +46,13 @@ export async function POST(request) {
         const ndocu = corRes.recordset[0].nroini.trim();
         const nextNdocu = incrementCorrelative(ndocu);
 
+        // Actualizar el correlativo en la base de datos inmediatamente
+        await transaction.request()
+            .input('nextNdocu', sql.Char(12), nextNdocu)
+            .input('cdocu', sql.Char(2), docType)
+            .input('codpto', sql.Char(6), sedeCode)
+            .query("UPDATE tbl01cor SET nroini = @nextNdocu WHERE cdocu = @cdocu AND codpto = @codpto");
+
         // 2. Calcular totales (Navasoft: totn=Total, tota=Afecto, toti=IGV)
         // Nota de Venta (65) no desglosa IGV en cabecera
         const totalVenta = items.reduce((acc, item) => acc + (item.price * item.quantity), 0);
