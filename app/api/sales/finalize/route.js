@@ -101,13 +101,20 @@ export async function POST(request) {
                     globalCodFdp = '03'; // TARJETA
                 }
             }
+        // 5. OBTENER NROPLA DE LA SESIÓN
+        let nropla = '';
+        if (idApeCaj) {
+            const apeRes = await transaction.request()
+                .input('id', sql.Int, idApeCaj)
+                .query('SELECT nropla FROM dtl_restpos_apecaj WHERE idapecaj = @id');
+            nropla = apeRes.recordset[0]?.nropla || '';
         }
-        
+
         const userCodeFinal = idApeCaj ? '   ' : (session.user.id?.toString().trim() || 'POS').substring(0, 3);
         const codSubValue = (globalSelPago === 1) ? '01' : '03'; 
         const finalCompro = `${codSubValue}/${ndocu.split('-')[1]?.substring(0, 6) || '000000'}`;
 
-        // 5. INSERCIÓN CABECERA (mst01fac)
+        // 6. INSERCIÓN CABECERA (mst01fac)
         await transaction.request()
             .input('fecha', sql.VarChar(10), fechaStr)
             .input('fven', sql.VarChar(10), fechaStr)
@@ -138,20 +145,38 @@ export async function POST(request) {
                 VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, '01', '01', @codven, @codsub)
             `);
 
-        // 6. COBRANZA MIXTA
-        if (isMixed || isSingleNonCash) {
-            for (const p of payments) {
-                await transaction.request()
-                    .input('cdocu', sql.Char(2), docType)
-                    .input('ndocu', sql.Char(12), ndocu)
-                    .input('codtar', sql.Char(2), (p.id === 'EF' ? 'NS' : p.id).substring(0, 2))
-                    .input('amount', sql.Decimal(18, 4), p.amount)
-                    .input('selpago', sql.Int, (p.id === 'EF' ? 1 : 3))
-                    .query(`
-                        INSERT INTO dtl_restpos_cobmixta (cdocu, ndocu, codtar, recib, totn, selpago, impper, cajrecib, monrecib, cajvuelto, monvuelto)
-                        VALUES (@cdocu, @ndocu, @codtar, @amount, @amount, @selpago, 0, @amount, 'S', 0, 'S')
-                    `);
-            }
+        // 7. COBRANZA (dtl01cob) - OBLIGATORIO PARA LIQUIDACIÓN
+        const paymentList = payments.length > 0 ? payments : [{ id: 'EF', amount: breakdown.total, type: 1 }];
+        
+        for (let i = 0; i < paymentList.length; i++) {
+            const p = paymentList[i];
+            const cpago = (p.type === 1 || p.id === 'EF') ? 'E' : (p.id?.includes('BANCO') || p.id?.includes('TRANS') ? 'B' : 'T');
+            
+            await transaction.request()
+                .input('cdocu', sql.Char(2), docType)
+                .input('ndocu', sql.Char(12), ndocu)
+                .input('monto', sql.Decimal(18, 4), p.amount)
+                .input('cpago', sql.Char(1), cpago)
+                .input('npago', sql.Char(12), (p.voucher || '').substring(0, 12))
+                .input('nplan', sql.Char(12), nropla.substring(0, 12))
+                .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
+                .input('item', sql.Int, i + 1)
+                .query(`
+                    INSERT INTO dtl01cob (cdocu, ndocu, monto, cpago, npago, mone, tcam, nplan, codven, valori, monori, mtopad, mtopas, codn, impdonac)
+                    VALUES (@cdocu, @ndocu, @monto, @cpago, @npago, 'S', 1, @nplan, @codven, 0, 'S', 0, 0, ' ', 0)
+                `);
+
+            // También en dtl_restpos_cobmixta para el visor de tickets del POS
+            await transaction.request()
+                .input('cdocu', sql.Char(2), docType)
+                .input('ndocu', sql.Char(12), ndocu)
+                .input('codtar', sql.Char(2), (p.id === 'EF' ? 'NS' : p.id).substring(0, 2))
+                .input('amount', sql.Decimal(18, 4), p.amount)
+                .input('selpago', sql.Int, (p.type === 1 || p.id === 'EF' ? 1 : 3))
+                .query(`
+                    INSERT INTO dtl_restpos_cobmixta (cdocu, ndocu, codtar, recib, totn, selpago, impper, cajrecib, monrecib, cajvuelto, monvuelto)
+                    VALUES (@cdocu, @ndocu, @codtar, @amount, @amount, @selpago, 0, @amount, 'S', 0, 'S')
+                `);
         }
 
         // 7. DETALLE Y STOCK DINÁMICO
