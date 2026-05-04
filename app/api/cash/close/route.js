@@ -27,7 +27,7 @@ export async function POST(request) {
                 const item = totals[i];
                 await transaction.request()
                     .input('idapecaj', sql.Int, idapecaj)
-                    .input('idarqueo', sql.Int, 1)
+                    .input('idarqueo', sql.Int, i + 1)
                     .input('selpago', sql.Int, item.selpago)
                     .input('codtar', sql.Char(2), (item.codtar || '  ').substring(0, 2))
                     .input('fecha', sql.DateTime, now)

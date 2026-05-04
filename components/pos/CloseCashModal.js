@@ -1,6 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Lock, Calculator, Banknote, CreditCard, Save, AlertCircle, TrendingDown, ArrowRight } from 'lucide-react';
+import { 
+    X, Lock, Calculator, Banknote, CreditCard, 
+    Save, AlertCircle, TrendingDown, ArrowRight, 
+    FileText, ShoppingBag, Hash, Receipt
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm }) {
@@ -34,22 +38,20 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
         
         setIsClosing(true);
         try {
-            // Mapear el resumen a los códigos de Navasoft para dtl_restpos_arqueo
+            // Mapear el resumen dinámico para el guardado
             const totals = [];
 
             // 1. Efectivo
-            const cashAmount = summary.salesBreakdown.find(s => s.method === 'Efectivo')?.total || 0;
-            totals.push({ selpago: 1, codtar: '', totnsis: cashAmount, totnfis: cashAmount });
+            const cashRow = summary.salesBreakdown.find(s => s.method === 'EFECTIVO');
+            if (cashRow) {
+                totals.push({ selpago: 1, codtar: '', totnsis: cashRow.total, totnfis: cashRow.total });
+            }
 
-            // 2. Otros (Digitales/Mixtos)
-            const digitalPayments = summary.salesBreakdown.filter(s => s.method === 'Digital/Mixto');
+            // 2. Digitales (Dinámicos desde la DB)
+            const digitalPayments = summary.salesBreakdown.filter(s => s.method !== 'EFECTIVO');
             digitalPayments.forEach(p => {
-                // Determinar selpago basado en codtar (aproximado por lógica de Navasoft)
-                let selpago = 3; // Default Tarjeta
-                if (['06', '07'].includes(p.codtar.trim())) selpago = 7; // Billeteras
-                
                 totals.push({
-                    selpago,
+                    selpago: 3, // Generalmente tarjeta para arqueo
                     codtar: p.codtar,
                     totnsis: p.total,
                     totnfis: p.total
@@ -82,65 +84,111 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
 
     return (
         <div style={overlayStyle}>
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={modalStyle}>
+            <motion.div 
+                initial={{ y: 50, opacity: 0 }} 
+                animate={{ y: 0, opacity: 1 }} 
+                style={modalStyle}
+            >
+                {/* HEADER */}
                 <div style={headerStyle}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div style={iconBoxStyle}><Lock size={20} /></div>
                         <div>
-                            <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Arqueo y Cierre</h2>
-                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Resumen final de jornada</p>
+                            <h2 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>Cierre de Jornada</h2>
+                            <p style={{ fontSize: '12px', color: '#64748b', margin: 0, fontWeight: 500 }}>ID Sesión: #{idApeCaj} • {summary?.user || '...'}</p>
                         </div>
                     </div>
                     <button onClick={onClose} style={closeBtnStyle}><X size={20} /></button>
                 </div>
 
-                <div style={{ padding: '24px' }}>
+                <div style={scrollAreaStyle}>
                     {loading ? (
-                        <div style={{ textAlign: 'center', padding: '40px' }}>
-                            <div className="animate-spin" style={{ marginBottom: '10px' }}><Calculator size={32} /></div>
-                            <p style={{ fontWeight: 600 }}>Calculando totales...</p>
+                        <div style={{ textAlign: 'center', padding: '60px' }}>
+                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 1 }}>
+                                <Calculator size={40} style={{ color: '#3b82f6', opacity: 0.5 }} />
+                            </motion.div>
+                            <p style={{ fontWeight: 700, color: '#64748b', marginTop: '16px' }}>Consolidando transacciones...</p>
                         </div>
                     ) : summary && (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', padding: '24px' }}>
                             
-                            {/* Saldo Inicial y Ventas */}
+                            {/* MINI DASHBOARD */}
                             <div style={summaryGridStyle}>
                                 <div style={summaryCardStyle}>
-                                    <p style={labelStyle}>Monto Inicial</p>
+                                    <p style={labelStyle}>Apertura</p>
                                     <p style={valueStyle}>S/ {summary.opening.toFixed(2)}</p>
                                 </div>
-                                <div style={{ ...summaryCardStyle, background: '#f0fdf4', borderColor: '#dcfce7' }}>
-                                    <p style={{ ...labelStyle, color: '#15803d' }}>Total Ventas</p>
-                                    <p style={{ ...valueStyle, color: '#166534' }}>S/ {summary.totalSales.toFixed(2)}</p>
+                                <div style={{ ...summaryCardStyle, background: '#f0fdf4', border: 'none' }}>
+                                    <p style={{ ...labelStyle, color: '#10b981' }}>Ventas</p>
+                                    <p style={{ ...valueStyle, color: '#065f46' }}>S/ {summary.totalSales.toFixed(2)}</p>
                                 </div>
-                                <div style={{ ...summaryCardStyle, background: '#fef2f2', borderColor: '#fee2e2' }}>
-                                    <p style={{ ...labelStyle, color: '#b91c1c' }}>Total Egresos</p>
+                                <div style={{ ...summaryCardStyle, background: '#fef2f2', border: 'none' }}>
+                                    <p style={{ ...labelStyle, color: '#ef4444' }}>Gastos</p>
                                     <p style={{ ...valueStyle, color: '#991b1b' }}>S/ {summary.expenses.toFixed(2)}</p>
                                 </div>
                             </div>
 
-                            {/* Desglose de Ventas */}
-                            <div style={breakdownBoxStyle}>
-                                <h3 style={sectionTitleStyle}>Desglose por Medio de Pago</h3>
+                            {/* DOCUMENTOS EMITIDOS */}
+                            <div style={sectionBoxStyle}>
+                                <div style={sectionHeaderStyle}>
+                                    <FileText size={16} />
+                                    <span>Documentos Emitidos</span>
+                                </div>
+                                {summary.docBreakdown.map((d, idx) => (
+                                    <div key={idx} style={rowStyle}>
+                                        <div>
+                                            <p style={rowTitleStyle}>{d.docName}</p>
+                                            <p style={rowSubStyle}>{d.rangeStart} al {d.rangeEnd}</p>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p style={rowValueStyle}>{d.quantity} docs</p>
+                                            <p style={{ ...rowSubStyle, fontWeight: 700 }}>S/ {d.total.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* DESGLOSE DE PAGOS (DINÁMICO) */}
+                            <div style={sectionBoxStyle}>
+                                <div style={sectionHeaderStyle}>
+                                    <CreditCard size={16} />
+                                    <span>Liquidación de Caja</span>
+                                </div>
                                 {summary.salesBreakdown.map((s, idx) => (
                                     <div key={idx} style={rowStyle}>
-                                        <span style={rowLabelStyle}>
-                                            {s.method === 'Efectivo' ? '💵 Efectivo' : 
-                                             (['04', '06'].includes(s.codtar.trim()) ? '📱 Yape' : 
-                                              (s.codtar.trim() === '07' ? '💳 Tarjeta' : '💳 Otros'))}
-                                        </span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                            {s.method === 'EFECTIVO' ? <Banknote size={14} /> : <Smartphone size={14} />}
+                                            <span style={rowTitleStyle}>{s.method.trim()}</span>
+                                        </div>
                                         <span style={rowValueStyle}>S/ {s.total.toFixed(2)}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Resultado Final */}
+                            {/* VENTA POR LÍNEAS */}
+                            <div style={sectionBoxStyle}>
+                                <div style={sectionHeaderStyle}>
+                                    <ShoppingBag size={16} />
+                                    <span>Venta por Categoría</span>
+                                </div>
+                                {summary.lineBreakdown.map((l, idx) => (
+                                    <div key={idx} style={rowStyle}>
+                                        <span style={rowTitleStyle}>{l.category.trim()}</span>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <span style={rowValueStyle}>S/ {l.total.toFixed(2)}</span>
+                                            <p style={{ ...rowSubStyle, fontSize: '9px' }}>{l.itemsSold} items</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* TOTAL ESPERADO (FOOTER MODAL) */}
                             <div style={totalBoxStyle}>
                                 <div>
-                                    <p style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '4px' }}>Efectivo Esperado en Caja</p>
-                                    <p style={{ fontSize: '36px', fontWeight: 900, color: '#fff', margin: 0 }}>S/ {summary.expectedFinal.toFixed(2)}</p>
+                                    <p style={{ fontSize: '11px', fontWeight: 800, color: 'rgba(255,255,255,0.6)', textTransform: 'uppercase', marginBottom: '4px' }}>Efectivo en Caja</p>
+                                    <p style={{ fontSize: '32px', fontWeight: 900, color: '#fff', margin: 0, letterSpacing: '-0.02em' }}>S/ {summary.expectedFinal.toFixed(2)}</p>
                                 </div>
-                                <div style={finalIconStyle}><Banknote size={32} /></div>
+                                <div style={finalIconStyle}><Banknote size={40} /></div>
                             </div>
 
                             <button 
@@ -148,10 +196,10 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
                                 disabled={isClosing}
                                 style={{
                                     ...closeBtnActionStyle,
-                                    background: isClosing ? '#94a3b8' : '#ef4444'
+                                    background: isClosing ? '#94a3b8' : '#0f172a'
                                 }}
                             >
-                                {isClosing ? 'Finalizando jornada...' : <><Lock size={18} /> Confirmar Cierre de Caja</>}
+                                {isClosing ? 'Cerrando sesión...' : 'Confirmar Cierre de Caja'}
                             </button>
                         </div>
                     )}
@@ -161,23 +209,29 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
     );
 }
 
-const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(8px)', zIndex: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' };
-const modalStyle = { background: '#fff', borderRadius: '32px', width: '100%', maxWidth: '440px', boxShadow: '0 30px 100px rgba(0,0,0,0.4)', overflow: 'hidden' };
-const headerStyle = { padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' };
+// Estilos
+const overlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' };
+const modalStyle = { background: '#fff', borderRadius: '32px', width: '100%', maxWidth: '480px', maxHeight: '90vh', boxShadow: '0 40px 100px rgba(0,0,0,0.5)', overflow: 'hidden', display: 'flex', flexDirection: 'column' };
+const scrollAreaStyle = { overflowY: 'auto', flex: 1 };
+const headerStyle = { padding: '24px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fff', position: 'sticky', top: 0, zIndex: 10 };
 const iconBoxStyle = { width: '40px', height: '40px', background: '#fef2f2', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444' };
-const closeBtnStyle = { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' };
+const closeBtnStyle = { background: '#f1f5f9', border: 'none', color: '#94a3b8', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
-const summaryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' };
-const summaryCardStyle = { padding: '12px', background: '#f8fafc', borderRadius: '16px', border: '1px solid #f1f5f9', textAlign: 'center' };
-const labelStyle = { fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' };
-const valueStyle = { fontSize: '14px', fontWeight: 900, color: '#1e293b', margin: 0 };
+const summaryGridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' };
+const summaryCardStyle = { padding: '16px 12px', background: '#f8fafc', borderRadius: '18px', textAlign: 'center' };
+const labelStyle = { fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '4px' };
+const valueStyle = { fontSize: '16px', fontWeight: 900, color: '#0f172a', margin: 0 };
 
-const breakdownBoxStyle = { background: '#f8fafc', borderRadius: '20px', padding: '20px', border: '1px solid #f1f5f9' };
-const sectionTitleStyle = { fontSize: '12px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.05em' };
-const rowStyle = { display: 'flex', justifyContent: 'space-between', padding: '8px 0', borderBottom: '1px dashed #e2e8f0' };
-const rowLabelStyle = { fontSize: '13px', fontWeight: 600, color: '#64748b' };
-const rowValueStyle = { fontSize: '14px', fontWeight: 800, color: '#0f172a' };
+const sectionBoxStyle = { background: '#fff', borderRadius: '24px', padding: '20px', border: '1px solid #f1f5f9', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)' };
+const sectionHeaderStyle = { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', fontWeight: 900, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '16px', opacity: 0.7 };
+const rowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #f8fafc' };
+const rowTitleStyle = { fontSize: '13px', fontWeight: 700, color: '#1e293b', margin: 0 };
+const rowSubStyle = { fontSize: '11px', color: '#94a3b8', margin: 0 };
+const rowValueStyle = { fontSize: '14px', fontWeight: 800, color: '#0f172a', margin: 0 };
 
-const totalBoxStyle = { background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '28px', borderRadius: '24px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' };
+const totalBoxStyle = { background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', padding: '32px', borderRadius: '28px', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 20px 40px rgba(37,99,235,0.3)' };
 const finalIconStyle = { opacity: 0.2, transform: 'rotate(-10deg)' };
-const closeBtnActionStyle = { width: '100%', color: '#fff', border: 'none', borderRadius: '18px', padding: '20px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', boxShadow: '0 10px 20px rgba(239,68,68,0.2)', transition: 'all 0.2s' };
+const closeBtnActionStyle = { width: '100%', color: '#fff', border: 'none', borderRadius: '20px', padding: '20px', fontSize: '16px', fontWeight: 800, cursor: 'pointer', transition: 'all 0.2s', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' };
+
+// Componentes adicionales de Lucide que no estaban importados
+function Smartphone({ size }) { return <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="14" height="20" x="5" y="2" rx="2" ry="2"/><path d="M12 18h.01"/></svg> }

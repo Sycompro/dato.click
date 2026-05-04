@@ -76,23 +76,30 @@ export async function POST(request) {
         let globalCodTar = '  ';
         let globalCompro = '';
 
-        if (isMixed || isSingleNonCash) {
+        if (isMixed) {
             globalSelPago = 4;
-            globalCodFdp = '  ';
-            globalCodTar = '0 '; 
+            globalCodFdp = '01'; // Default to cash for header
+            globalCodTar = '  ';
         } else if (payments.length === 1) {
             const p = payments[0];
             globalSelPago = p.type;
-            globalCodFdp = (p.type === 1) ? '01' : '02';
+            const pid = (p.id || '').toUpperCase();
             
-            if (p.id === 'EF' || p.type === 1) {
+            // Lógica Dinámica: El ID (pid) ya viene del ERP (disponible en disponibleMethods)
+            if (pid === 'EF' || p.type === 1) {
+                globalCodFdp = '01'; // EFECTIVO
                 globalCodTar = '  ';
-            } else if (p.id?.includes('YAPE') && p.id?.includes('QR')) {
-                globalCodTar = '04';
-            } else if (p.id?.includes('YAPE')) {
-                globalCodTar = '06';
             } else {
-                globalCodTar = '07'; 
+                // Si no es efectivo, es Tarjeta o Banco
+                globalCodTar = pid.substring(0, 2);
+                
+                // Clasificación inteligente del grupo de pago (codfdp)
+                const name = (p.name || '').toUpperCase();
+                if (name.includes('TRANS') || name.includes('BANCO')) {
+                    globalCodFdp = '04'; // BANCO
+                } else {
+                    globalCodFdp = '03'; // TARJETA
+                }
             }
             globalCompro = p.voucher ? p.voucher.substring(0, 6) : '';
         }
