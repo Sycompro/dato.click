@@ -57,7 +57,7 @@ export async function GET(request) {
                     )
                     UNION ALL
                     -- Parte efectivo de cobros mixtos
-                    SELECT SUM(totn) as monto, COUNT(*) as cant
+                    SELECT SUM(c.totn) as monto, COUNT(*) as cant
                     FROM dtl_restpos_cobmixta c
                     INNER JOIN mst01fac f ON c.ndocu = f.ndocu AND c.cdocu = f.cdocu
                     WHERE f.idapecaj = @id AND c.codtar = 'NS'
