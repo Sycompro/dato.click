@@ -167,6 +167,7 @@ export async function POST(request) {
                 .input('codalm', sql.Char(2), warehouse.substring(0, 2))
                 .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
                 .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
+                .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
                 .query(`
                     INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, codcli, codven, codvta, codcdv, flag, aigv, mone, moneitm, tcam, msto)
                     VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @codalm, @codcli, @codven, '01', '01', '0', 'S', 'S', 'S', @tcam, 'S')
@@ -205,16 +206,16 @@ export async function POST(request) {
             } catch (e) {}
         }
 
-        // 8. DEUDA (mst01ccc)
         await transaction.request()
             .input('fecha', sql.VarChar(10), fechaStr)
             .input('cdocu', sql.Char(2), docType)
             .input('ndocu', sql.Char(12), ndocu)
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
             .input('monto', sql.Decimal(18, 4), breakdown.total)
+            .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
             .query(`
                 INSERT INTO mst01ccc (fecha, cdocu, ndocu, crefe, nrefe, codcli, nomcli, ruccli, codcdv, monto, saldo, fven, mone, tcam, flag, flagi, codven, codpto, codsub, compro, codscc)
-                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, 'CLIENTE', '', '01', @monto, @monto, @fecha, 'S', 1, '0', '0', 'V0001', '01', '01', '', '00')
+                VALUES (@fecha, @cdocu, @ndocu, @cdocu, @ndocu, @codcli, 'CLIENTE', '', '01', @monto, @monto, @fecha, 'S', @tcam, '0', '0', 'V0001', '01', '01', '', '00')
             `);
 
         await transaction.commit();
