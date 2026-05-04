@@ -219,7 +219,13 @@ export async function POST(request) {
             `);
 
         await transaction.commit();
-        return NextResponse.json({ success: true, ndocu });
+        return NextResponse.json({ 
+            success: true, 
+            ndocu,
+            total: breakdown.total,
+            base: breakdown.subtotal,
+            igv: breakdown.tax
+        });
 
     } catch (err) {
         if (transaction) await transaction.rollback();

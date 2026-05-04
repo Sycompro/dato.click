@@ -19,8 +19,14 @@ export async function GET(request) {
     
     const pool = await getConnection(company);
     
-    // 1. Determinar el almacén y tablas usando utilidades centralizadas
-    const warehouse = await getWarehouseForSede(pool, sedeId);
+    // 1. Determinar el almacén (Prioridad: URL > Sesión > Default)
+    const urlAlm = searchParams.get('alm');
+    let warehouse = urlAlm;
+    
+    if (!warehouse || warehouse === 'undefined') {
+        warehouse = await getWarehouseForSede(pool, sedeId);
+    }
+    
     const stockField = getStockColumnName(warehouse);
     const prdTable = getStockTableName(warehouse);
     

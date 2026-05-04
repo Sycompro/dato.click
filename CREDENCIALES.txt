@@ -8,13 +8,6 @@ c:\Users\Administrador\Desktop\dato.click\pagina-web\docs\analisis-pos.md
 psventa.exe
 
 
-GYMprueba
-Usuario: prueba01
-Clave: 123456
-
-
-
-
 
 GIM.BRA S.A.C.
 R.U.C.: 20603623747
@@ -32,3 +25,28 @@ Clave: 124656
 
 que pasa si se amula una venta tambien se anula la mebresia y que pas en los caso que tenga un extensesion?
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+GYMprueba
+Usuario: prueba01
+Clave: 123456

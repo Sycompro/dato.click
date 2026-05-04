@@ -273,7 +273,7 @@ export default function POSPage() {
             const result = await res.json();
             if (result.success) { 
                 const newPrintData = {
-                    documentNumber: result.documentNumber,
+                    documentNumber: result.ndocu,
                     docType,
                     customer: { name: customer.name, ruc: customer.ruc, phone: customer.phone },
                     items: [...cart],
@@ -285,7 +285,7 @@ export default function POSPage() {
                 };
                 setPrintData(newPrintData);
                 setLastMembershipInfo(result.membershipInfo);
-                setOrderSuccess(result.documentNumber); 
+                setOrderSuccess(result.ndocu); 
                 setCart([]); 
                 setCustomer({ name: 'CLIENTE VARIOS', ruc: '', code: '000000', phone: '', birthdate: '' }); 
                 setCustomerSearch(''); 
