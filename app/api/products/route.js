@@ -18,12 +18,12 @@ export async function GET(request) {
     // 1. Determinar el almacén (warehouse) del Punto de Venta (Sede)
     let warehouse = '01'; // Default
     if (sedeId) {
+        console.log(`[Products] Buscando almacén para Sede: ${sedeId} en ${company}`);
         const ptoRes = await pool.request()
-            .input('codpto', sql.Char(6), sedeId)
-            .query("SELECT codtie FROM tbl01pto WHERE codpto = @codpto");
+            .input('codpto', sql.VarChar(10), sedeId)
+            .query("SELECT codtie FROM tbl01pto WHERE LTRIM(RTRIM(codpto)) = LTRIM(RTRIM(@codpto))");
         
         if (ptoRes.recordset.length > 0) {
-            // Buscamos el almacén (codalm) vinculado a la tienda (codtie) en tbl01Alm
             const codtie = ptoRes.recordset[0].codtie.trim();
             const almRes = await pool.request()
                 .input('codtie', sql.Char(3), codtie)
@@ -32,13 +32,13 @@ export async function GET(request) {
             if (almRes.recordset.length > 0) {
                 warehouse = almRes.recordset[0].codalm.trim();
             } else {
-                // Fallback: Si no hay mapeo en tbl01Alm, usamos la lógica anterior
                 warehouse = codtie.slice(-2);
             }
         }
     }
 
     const stockField = `stk${warehouse.padStart(2, '0')}`;
+    console.log(`[Products] Sede: ${sedeId} -> Almacén: ${warehouse} -> Campo Stock: ${stockField}`);
     
     // 2. Consulta optimizada con lógica de stock inteligente (Sede > Total)
     let sqlQuery = `
@@ -49,10 +49,7 @@ export async function GET(request) {
         RTRIM(marc) as brand, 
         RTRIM(umed) as unit, 
         pvns as price, 
-        CASE 
-          WHEN ${stockField} > 0 THEN ${stockField} 
-          ELSE stoc 
-        END as stock
+        ISNULL(NULLIF(${stockField}, 0), stoc) as stock
       FROM prd0101
       WHERE estado = 1
     `;

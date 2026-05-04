@@ -29,22 +29,6 @@ Usuario: Prueba 03
 Clave: 124656
 
 
-Conclusión del Análisis:
-El POS Web está actuando correctamente al tomar el precio pvns. No hay discrepancias con el ERP porque actualmente no estás utilizando precios diferenciados por tipo de cliente.
-
-Actualización de Documentación:
-He actualizado el archivo de mejoras con esta información. Ahora tenemos una visión clara de:
-
-Sedes: Necesita corrección (usar tbl01Alm).
-Stock: Necesita corrección (asociar al almacén real).
-Kardex: Falta implementar (para trazabilidad).
-Precios: Está Correcto (no requiere cambios por ahora).
-NOTE
-
-Puedes revisar el estado detallado en: 
-
-mejoras-pos-web.md
-
 
 que pasa si se amula una venta tambien se anula la mebresia y que pas en los caso que tenga un extensesion?
 
