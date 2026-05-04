@@ -13,16 +13,38 @@ export async function GET(request) {
 
     try {
         const pool = await getConnection(session?.user?.company);
-        const result = await pool.request()
+        
+        // 1. Obtener detalles de la sesión de caja
+        const sessionRes = await pool.request()
+            .input('idApeCaj', sql.Int, idApeCaj)
+            .query("SELECT TOP 1 fecape, hora, apesol FROM dtl_restpos_apecaj WHERE idapecaj = @idApeCaj");
+        
+        const sessionInfo = sessionRes.recordset[0] ? {
+            openingDate: sessionRes.recordset[0].fecape,
+            openingTime: sessionRes.recordset[0].hora,
+            openingAmount: sessionRes.recordset[0].apesol
+        } : null;
+
+        // 2. Obtener lista de ventas
+        const salesRes = await pool.request()
             .input('idApeCaj', sql.Int, idApeCaj)
             .query(`
-                SELECT ndocu, cdocu, nomcli, tota, fecha 
-                FROM mst01fac 
-                WHERE idapecaj = @idApeCaj 
-                ORDER BY fecha DESC
+                SELECT 
+                    f.ndocu, f.cdocu, f.nomcli, f.ruccli, 
+                    CAST(f.totn AS FLOAT) as tota, 
+                    f.fecha,
+                    c.fecfinpres,
+                    COALESCE(NULLIF(f.observ, ''), NULLIF(c.celcli, ''), NULLIF(c.telcli, ''), '') as phone
+                FROM mst01fac f
+                LEFT JOIN mst01cli c ON f.codcli = c.codcli
+                WHERE f.idapecaj = @idApeCaj 
+                ORDER BY f.FecReg DESC
             `);
 
-        return NextResponse.json(result.recordset);
+        return NextResponse.json({
+            sales: salesRes.recordset,
+            sessionInfo
+        });
     } catch (err) {
         return NextResponse.json({ error: err.message }, { status: 500 });
     }

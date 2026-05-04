@@ -40,3 +40,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 /scratch/
+/brain/
+*.txt
+*.js.map

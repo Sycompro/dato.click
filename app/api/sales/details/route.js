@@ -19,7 +19,7 @@ export async function GET(request) {
         const headerRes = await pool.request()
             .input('cdocu', sql.Char(2), cdocu)
             .input('ndocu', sql.Char(12), ndocu)
-            .query("SELECT ndocu, cdocu, nomcli, ruccli, tota, fecha, codven FROM mst01fac WHERE cdocu = @cdocu AND ndocu = @ndocu");
+            .query("SELECT ndocu, cdocu, nomcli, ruccli, totn as total, tota as base, toti as igv, fecha, codven FROM mst01fac WHERE cdocu = @cdocu AND ndocu = @ndocu");
 
         if (headerRes.recordset.length === 0) return NextResponse.json({ error: 'Documento no encontrado' }, { status: 404 });
 

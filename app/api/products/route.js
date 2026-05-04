@@ -23,9 +23,18 @@ export async function GET(request) {
             .query("SELECT codtie FROM tbl01pto WHERE codpto = @codpto");
         
         if (ptoRes.recordset.length > 0) {
-            // El codtie suele ser '001', '008', etc. Tomamos los últimos 2 dígitos.
+            // Buscamos el almacén (codalm) vinculado a la tienda (codtie) en tbl01Alm
             const codtie = ptoRes.recordset[0].codtie.trim();
-            warehouse = codtie.slice(-2); 
+            const almRes = await pool.request()
+                .input('codtie', sql.Char(3), codtie)
+                .query("SELECT TOP 1 codalm FROM tbl01Alm WHERE codtie = @codtie");
+            
+            if (almRes.recordset.length > 0) {
+                warehouse = almRes.recordset[0].codalm.trim();
+            } else {
+                // Fallback: Si no hay mapeo en tbl01Alm, usamos la lógica anterior
+                warehouse = codtie.slice(-2);
+            }
         }
     }
 

@@ -21,12 +21,35 @@ export async function POST(request) {
         items,
         idApeCaj,
         paymentMethod,
-        warehouse,
+        warehouse: bodyWarehouse,
         currency = 'S',
         exchangeRate = 1
     } = body;
 
     const pool = await getConnection(session?.user?.company);
+    
+    // DETERMINAR ALMACÉN REAL (Fase 1 Mejorada)
+    const sedeCode = session?.user?.sedeId || '01'; // codpto
+    let warehouse = bodyWarehouse || '01';
+    
+    try {
+        const ptoRes = await pool.request()
+            .input('codpto', sql.Char(6), sedeCode)
+            .query("SELECT codtie FROM tbl01pto WHERE codpto = @codpto");
+        
+        if (ptoRes.recordset.length > 0) {
+            const codtie = ptoRes.recordset[0].codtie.trim();
+            const almRes = await pool.request()
+                .input('codtie', sql.Char(3), codtie)
+                .query("SELECT TOP 1 codalm FROM tbl01Alm WHERE codtie = @codtie");
+            
+            if (almRes.recordset.length > 0) {
+                warehouse = almRes.recordset[0].codalm.trim();
+            }
+        }
+    } catch (e) {
+        console.warn("Error determinando almacén, usando fallback:", e.message);
+    }
     const transaction = new sql.Transaction(pool);
 
     try {
@@ -67,39 +90,79 @@ export async function POST(request) {
         // 65: Nota    -> tfact 5
         const tfactValue = (docType === '01') ? '1' : (docType === '03' ? '2' : '5');
         
-        // Fecha solo (sin hora) para compatibilidad con filtros ERP
-        const todayDate = new Date();
-        todayDate.setHours(0,0,0,0);
+        // Fecha y Hora local de Perú para el ERP
+        // Fecha local de Perú (YYYY-MM-DD) sin desfase UTC
+        const fechaStr = new Intl.DateTimeFormat('en-CA', { 
+            timeZone: 'America/Lima',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        }).format(new Date());
 
-        // 3. Insertar Cabecera (mst01fac)
-        const isCard = paymentMethod === 3;
-        const codfdp = isCard ? '02' : '01';
-        const comproBase = isCard ? `${(body.codtar || '03').substring(0, 2)}/` : '';
+        // 3. Inserción de Cobranza Mixta (SIEMPRE si es mixto o tarjeta/billetera)
+        const payments = body.payments || [];
+        const isMixed = payments.length > 1;
+        const isSingleNonCash = payments.length === 1 && payments[0].type !== 1;
+        
+        // Determinar selpago global para mst01fac
+        // Si es mixto o digital único -> selpago 4 (según análisis ERP)
+        // Si es efectivo único -> selpago 1
+        let globalSelPago = 1;
+        let globalCodFdp = '01';
+        let globalCodTar = '  ';
+        let globalCompro = '';
+
+        if (isMixed || isSingleNonCash) {
+            globalSelPago = 4;
+            globalCodFdp = '  ';
+            globalCodTar = '0 '; 
+        } else if (payments.length === 1) {
+            const p = payments[0];
+            globalSelPago = p.type;
+            globalCodFdp = (p.type === 1) ? '01' : '02';
+            
+            // MAPEO OFICIAL NAVASOFT (Fase 4)
+            // 'YAPE_QR' -> '04', 'YAPE_NUM' -> '06', 'CARD' -> '07', 'EF' -> '  '
+            if (p.id === 'EF' || p.type === 1) {
+                globalCodTar = '  ';
+            } else if (p.id?.includes('YAPE') && p.id?.includes('QR')) {
+                globalCodTar = '04';
+            } else if (p.id?.includes('YAPE')) {
+                globalCodTar = '06';
+            } else {
+                globalCodTar = '07'; // Genérico para tarjetas
+            }
+            globalCompro = p.voucher ? p.voucher.substring(0, 6) : '';
+        }
+
+
+        const comproBase = globalSelPago === 3 ? `${globalCodTar}/` : '';
         const codscc = '00';
+        const userCode = session?.user?.id?.toString().padStart(3, '0').slice(0, 3) || 'POS';
 
         try {
             await transaction.request()
-                .input('fecha', sql.DateTime, todayDate)
-                .input('fven', sql.DateTime, todayDate)
+                .input('fecha', sql.VarChar(10), fechaStr)
+                .input('fven', sql.VarChar(10), fechaStr)
                 .input('cdocu', sql.Char(2), docType)
                 .input('ndocu', sql.Char(12), ndocu)
                 .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
                 .input('nomcli', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
                 .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
-                .input('totn', sql.Decimal(18, 4), totalVenta)   // TOTAL
-                .input('toti', sql.Decimal(18, 4), totalIGV)     // IGV
-                .input('tota', sql.Decimal(18, 4), totalAfecto)  // AFECTO (Base)
+                .input('totn', sql.Decimal(18, 4), totalVenta)
+                .input('toti', sql.Decimal(18, 4), totalIGV)
+                .input('tota', sql.Decimal(18, 4), totalAfecto)
                 .input('mone', sql.Char(1), currency || 'S')
                 .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
                 .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
                 .input('codalm', sql.Char(2), (warehouse || '01').substring(0, 2))
                 .input('idapecaj', sql.Int, idApeCaj)
-                .input('selpago', sql.Int, paymentMethod || 1)
-                .input('codfdp', sql.Char(2), codfdp)
-                .input('codtar', sql.Char(2), (body.codtar || '').substring(0, 2))
-                .input('compro', sql.Char(6), comproBase)
+                .input('selpago', sql.Int, globalSelPago)
+                .input('codfdp', sql.Char(2), globalCodFdp)
+                .input('codtar', sql.Char(2), globalCodTar)
+                .input('compro', sql.Char(6), (globalCompro || comproBase).substring(0, 6))
                 .input('codscc', sql.Char(2), codscc)
-                .input('codusu', sql.Char(3), 'POS') // Solo 3 caracteres permitidos
+                .input('codusu', sql.Char(3), userCode)
                 .input('monrecib', sql.Char(1), 'S')
                 .input('monvuelto', sql.Char(1), 'S')
                 .input('flag', sql.Char(1), flagValue)
@@ -107,11 +170,33 @@ export async function POST(request) {
                 .input('codcdv', sql.Char(2), '01')
                 .input('codvta', sql.Char(2), '01')
                 .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
-                .input('codsub', sql.Char(2), isCard ? '03' : '01')
+                .input('codsub', sql.Char(2), (globalSelPago === 1) ? '01' : '03')
                 .query(`
                     INSERT INTO mst01fac (fecha, fven, cdocu, ndocu, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codscc, codusu, monrecib, monvuelto, flag, tfact, Codcdv, codvta, codven, codsub)
                     VALUES (@fecha, @fven, @cdocu, @ndocu, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @codalm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codscc, @codusu, @monrecib, @monvuelto, @flag, @tfact, @codcdv, @codvta, @codven, @codsub)
                 `);
+
+            // 3.5 Inserción Detalle de Cobros (dtl_restpos_cobmixta)
+            if (isMixed || isSingleNonCash) {
+                for (const p of payments) {
+                    await transaction.request()
+                        .input('cdocu', sql.Char(2), docType)
+                        .input('ndocu', sql.Char(12), ndocu)
+                        .input('codtar', sql.Char(2), (p.id === 'EF' ? 'NS' : p.id).substring(0, 2))
+                        .input('recib', sql.Decimal(18, 4), p.amount)
+                        .input('totn', sql.Decimal(18, 4), p.amount)
+                        .input('selpago', sql.Int, (p.id === 'EF' ? 1 : 3)) // 1: Efectivo, 3: Digital (según análisis)
+                        .input('impper', sql.Decimal(18, 4), 0)
+                        .input('cajrecib', sql.Decimal(18, 4), (p.id === 'EF' ? p.amount : 0))
+                        .input('monrecib', sql.Char(1), (p.id === 'EF' ? 'S' : ' '))
+                        .input('cajvuelto', sql.Decimal(18, 4), 0)
+                        .input('monvuelto', sql.Char(1), (p.id === 'EF' ? 'S' : ' '))
+                        .query(`
+                            INSERT INTO dtl_restpos_cobmixta (cdocu, ndocu, codtar, recib, totn, selpago, impper, cajrecib, monrecib, cajvuelto, monvuelto)
+                            VALUES (@cdocu, @ndocu, @codtar, @recib, @totn, @selpago, @impper, @cajrecib, @monrecib, @cajvuelto, @monvuelto)
+                        `);
+                }
+            }
         } catch (sqlErr) {
             console.error('SQL Error in mst01fac:', sqlErr);
             throw sqlErr;
@@ -131,7 +216,7 @@ export async function POST(request) {
             const itemAigv = isNota ? 'N' : 'S';
 
             await transaction.request()
-                .input('fecha', sql.DateTime, todayDate)
+                .input('fecha', sql.VarChar(10), fechaStr)
                 .input('cdocu', sql.Char(2), docType)
                 .input('ndocu', sql.Char(12), ndocu)
                 .input('tfact', sql.Char(1), tfactValue)
@@ -167,6 +252,34 @@ export async function POST(request) {
                         stoc = stoc - @cant 
                     WHERE codi = @codi
                 `);
+
+            // 4.5 Insertar en Kardex (kdd01XX) para trazabilidad (Fase 2)
+            const kardexTable = `kdd01${(warehouse || '01').padStart(2, '0')}`;
+            try {
+                await transaction.request()
+                    .input('fecha', sql.VarChar(10), fechaStr)
+                    .input('cdocu', sql.Char(2), docType)
+                    .input('ndocu', sql.Char(12), ndocu)
+                    .input('codn', sql.Char(2), '00')
+                    .input('nomb', sql.Char(60), (body.nomcli || 'CLIENTE VARIOS').substring(0, 60))
+                    .input('tmov', sql.Char(1), 'S') // S = Salida
+                    .input('codi', sql.Char(11), (item.id || '').substring(0, 11))
+                    .input('cant', sql.Decimal(18, 6), item.quantity)
+                    .input('preu', sql.Decimal(18, 6), itemPriceNeto)
+                    .input('tota', sql.Decimal(18, 4), itemTotalNeto)
+                    .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
+                    .input('mone', sql.Char(1), currency || 'S')
+                    .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
+                    .input('CodPto', sql.Char(2), (sedeCode || '01').substring(0, 2))
+                    .input('aigv', sql.Char(1), itemAigv)
+                    .query(`
+                        INSERT INTO ${kardexTable} (fecha, cdocu, ndocu, codn, nomb, tmov, codi, cant, preu, tota, tcam, mone, codven, CodPto, aigv)
+                        VALUES (@fecha, @cdocu, @ndocu, @codn, @nomb, @tmov, @codi, @cant, @preu, @tota, @tcam, @mone, @codven, @CodPto, @aigv)
+                    `);
+            } catch (kardexErr) {
+                console.error(`Error insertando en Kardex ${kardexTable}:`, kardexErr.message);
+                // No lanzamos error para no bloquear la venta, pero lo logueamos
+            }
         }
 
         // 5. Actualizar el correlativo para la siguiente venta
@@ -178,7 +291,7 @@ export async function POST(request) {
 
         // 6. Insertar en Cuentas por Cobrar (mst01ccc)
         await transaction.request()
-            .input('fecha', sql.DateTime, todayDate)
+            .input('fecha', sql.VarChar(10), fechaStr)
             .input('cdocu', sql.Char(2), docType)
             .input('ndocu', sql.Char(12), ndocu)
             .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
@@ -186,12 +299,12 @@ export async function POST(request) {
             .input('ruccli', sql.Char(11), (body.ruccli || '').substring(0, 11))
             .input('monto', sql.Decimal(18, 4), totalVenta)
             .input('saldo', sql.Decimal(18, 4), totalVenta)
-            .input('fven', sql.DateTime, todayDate)
+            .input('fven', sql.VarChar(10), fechaStr)
             .input('mone', sql.Char(1), 'S')
             .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
             .input('codven', sql.Char(5), (body.codven || 'V0001').substring(0, 5))
             .input('codpto', sql.Char(2), (sedeCode || '01').substring(0, 2))
-            .input('codsub', sql.Char(2), isCard ? '03' : '01')
+            .input('codsub', sql.Char(2), (globalSelPago === 1) ? '01' : '03')
             .input('compro_ccc', sql.Char(6), comproBase)
             .input('codscc', sql.Char(2), codscc)
             .query(`
@@ -202,7 +315,7 @@ export async function POST(request) {
         // 6. Insertar en dtl01ccc (Solo Factura necesita esto para visibilidad en caja)
         if (docType === '01') {
             await transaction.request()
-                .input('fecha', sql.DateTime, todayDate)
+                .input('fecha', sql.VarChar(10), fechaStr)
                 .input('codcli', sql.Char(6), (codcli || '000000').substring(0, 6))
                 .input('cdocu', sql.Char(2), docType)
                 .input('ndocu', sql.Char(12), ndocu)
@@ -215,35 +328,37 @@ export async function POST(request) {
                 `);
         }
 
-        // 7. Actualizar ficha de cliente en Navasoft (Celular, Fecha Nacimiento y Membresías)
+        let membershipDates = null;
         if (codcli && codcli !== '000000' && codcli !== 'NUEVO_ERP' && codcli !== 'INTERNO') {
             const customerPhone = body.phone || '';
             const customerBirthdate = body.birthdate ? new Date(body.birthdate) : null;
             
-            // Calcular días de membresía comprados
             const daysToAdd = items.reduce((acc, item) => acc + ((item.membershipDays || 0) * (item.quantity || 1)), 0);
 
             if (daysToAdd > 0) {
-                // Obtener fecha de vencimiento actual
                 const currentCliRes = await transaction.request()
                     .input('codcli', sql.Char(6), codcli.substring(0, 6))
                     .query("SELECT fecfinpres FROM mst01cli WHERE codcli = @codcli");
                 
                 let currentExp = currentCliRes.recordset[0]?.fecfinpres;
-                let startDate = new Date(); // Por defecto empieza hoy
+                let startDate = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Lima"}));
                 startDate.setHours(0,0,0,0);
 
-                // Si tiene una fecha válida y es futura, empezamos desde ahí
-                let baseDate = new Date();
+                let baseDate = new Date(new Date().toLocaleString("en-US", {timeZone: "America/Lima"}));
                 baseDate.setHours(0,0,0,0);
 
-                if (currentExp && currentExp > baseDate) {
+                if (currentExp && new Date(currentExp) > baseDate) {
                     baseDate = new Date(currentExp);
                     baseDate.setHours(0,0,0,0);
                 }
 
                 const newExpDate = new Date(baseDate);
                 newExpDate.setDate(newExpDate.getDate() + daysToAdd);
+
+                membershipDates = {
+                    startDate: startDate.toLocaleDateString('es-PE'),
+                    endDate: newExpDate.toLocaleDateString('es-PE')
+                };
 
                 await transaction.request()
                     .input('codcli', sql.Char(6), codcli.substring(0, 6))
@@ -275,7 +390,11 @@ export async function POST(request) {
         return NextResponse.json({
             success: true,
             message: 'Venta finalizada con éxito',
-            documentNumber: ndocu
+            documentNumber: ndocu,
+            total: totalVenta,
+            base: totalAfecto,
+            igv: totalIGV,
+            membershipInfo: membershipDates
         });
 
     } catch (error) {

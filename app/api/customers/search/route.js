@@ -19,7 +19,7 @@ export async function GET(request) {
         // 1. Buscar en Navasoft (ERP) - Datos Oficiales
         const erpResult = await pool.request()
             .input('query', sql.VarChar(20), query)
-            .query("SELECT TOP 1 codcli, nomcli, ruccli, nrodni, dircli, telcli, celcli, fecnac FROM mst01cli WHERE ruccli = @query OR nrodni = @query");
+            .query("SELECT TOP 1 codcli, nomcli, ruccli, nrodni, dircli, telcli, celcli, fecnac, fecfinpres FROM mst01cli WHERE ruccli = @query OR nrodni = @query");
 
         if (erpResult.recordset.length > 0) {
             const cli = erpResult.recordset[0];
