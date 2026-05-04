@@ -35,31 +35,15 @@ export async function GET(request) {
         filters += ` AND LTRIM(RTRIM(codcat)) = RIGHT('${category}', 2) AND LEFT(codi, 2) = LEFT('${category}', 2)`;
     }
 
-    // 3. Consulta inteligente con soporte Multi-Tabla
+    // 3. Consulta directa a la tabla maestra (Restaurando lógica ganadora)
     let sqlQuery = `
-      DECLARE @table_exists INT;
-      SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
-
-      IF @table_exists > 0
-        BEGIN
-          SELECT TOP 50 
-            RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-            RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-            stoc as stock, RTRIM(Usr_003) as membershipDays
-          FROM ${prdTable}
-          WHERE ${filters}
-          ORDER BY descr ASC
-        END
-      ELSE
-        BEGIN
-          SELECT TOP 50 
-            RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
-            RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
-            ISNULL(NULLIF(${stockField}, 0), stoc) as stock, RTRIM(Usr_003) as membershipDays
-          FROM prd0101
-          WHERE ${filters}
-          ORDER BY descr ASC
-        END
+      SELECT TOP 50 
+        RTRIM(codi) as id, RTRIM(codf) as userCode, RTRIM(descr) as name, 
+        RTRIM(marc) as brand, RTRIM(umed) as unit, pvns as price, 
+        ${stockField} as stock, RTRIM(Usr_003) as membershipDays
+      FROM prd0101
+      WHERE ${filters}
+      ORDER BY descr ASC
     `;
     
     const result = await pool.request().query(sqlQuery);
