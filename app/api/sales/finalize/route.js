@@ -243,10 +243,23 @@ export async function POST(request) {
                 `);
 
             // Actualizar Stock (Almacén + Consolidado)
+            const prdTable = `prd01${(warehouse || '01').padStart(2, '0')}`;
             await transaction.request()
                 .input('codi', sql.Char(11), item.id)
                 .input('cant', sql.Float, item.quantity)
                 .query(`
+                    -- Actualizar tabla del almacén específico (si existe) o la global
+                    DECLARE @sql NVARCHAR(MAX);
+                    DECLARE @table_exists INT;
+                    SELECT @table_exists = COUNT(*) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = '${prdTable}';
+
+                    IF @table_exists > 0
+                    BEGIN
+                        SET @sql = N'UPDATE ${prdTable} SET stoc = stoc - @cant WHERE codi = @codi';
+                        EXEC sp_executesql @sql, N'@cant FLOAT, @codi CHAR(11)', @cant, @codi;
+                    END
+
+                    -- Actualizar siempre la tabla consolidada prd0101 (columna específica y global)
                     UPDATE prd0101 
                     SET ${stockField} = ${stockField} - @cant,
                         stoc = stoc - @cant 
