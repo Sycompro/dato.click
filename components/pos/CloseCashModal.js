@@ -125,7 +125,9 @@ export default function CloseCashModal({ isOpen, onClose, idApeCaj, onConfirm })
                                 {summary.salesBreakdown.map((s, idx) => (
                                     <div key={idx} style={rowStyle}>
                                         <span style={rowLabelStyle}>
-                                            {s.method === 'Efectivo' ? '💵 Efectivo' : (s.codtar.trim() === '07' ? '📱 Yape' : (s.codtar.trim() === '06' ? '📱 Plin' : '💳 Tarjeta'))}
+                                            {s.method === 'Efectivo' ? '💵 Efectivo' : 
+                                             (['04', '06'].includes(s.codtar.trim()) ? '📱 Yape' : 
+                                              (s.codtar.trim() === '07' ? '💳 Tarjeta' : '💳 Otros'))}
                                         </span>
                                         <span style={rowValueStyle}>S/ {s.total.toFixed(2)}</span>
                                     </div>

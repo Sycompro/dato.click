@@ -21,7 +21,12 @@ export async function GET(request) {
         const sedeCode = session.user.sedeId || '01';
         const sedeRes = await pool.request()
             .input('codpto', sql.Char(6), sedeCode)
-            .query("SELECT nompto FROM tbl01pto WHERE codpto = @codpto");
+            .query(`
+                SELECT P.nompto, T.DirTie, T.TelTie 
+                FROM tbl01pto P
+                LEFT JOIN tbl_tienda T ON P.codtie = T.codtie
+                WHERE P.codpto = @codpto
+            `);
         
         const sede = sedeRes.recordset[0] || {};
 
@@ -29,8 +34,8 @@ export async function GET(request) {
             company: {
                 name: emisor.nomcia?.trim() || 'MI EMPRESA',
                 ruc: emisor.ruccia?.trim() || '',
-                address: emisor.dircia?.trim() || '',
-                phone: emisor.telcia?.trim() || '',
+                address: sede.DirTie?.trim() || emisor.dircia?.trim() || '',
+                phone: sede.TelTie?.trim() || emisor.telcia?.trim() || '',
                 email: emisor.email?.trim() || ''
             },
             pointOfSale: {

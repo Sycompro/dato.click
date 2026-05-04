@@ -60,9 +60,10 @@ export async function GET(request) {
         
         const totalExpenses = expensesRes.recordset[0]?.total || 0;
 
-        // 4. Calcular Saldo Final Esperado
+        // 4. Calcular Saldo Final Esperado (Solo Efectivo + Apertura - Gastos)
+        const cashSales = salesSummary.recordset.find(s => s.method === 'Efectivo')?.total || 0;
+        const expectedCash = (openingData.apesol + cashSales) - totalExpenses;
         const totalSales = salesSummary.recordset.reduce((acc, curr) => acc + curr.total, 0);
-        const expectedCash = (openingData.apesol + totalSales) - totalExpenses;
 
         return NextResponse.json({
             success: true,
