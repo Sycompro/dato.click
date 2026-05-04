@@ -40,11 +40,33 @@ export async function POST(request) {
                     `);
             }
 
-            // 2. Actualizar dtl_restpos_apecaj (Marcar como cerrado)
+            // 2. Obtener datos de la apertura para limpiar la tabla maestra
+            const apeData = await transaction.request()
+                .input('id', sql.Int, idapecaj)
+                .query('SELECT codpto FROM dtl_restpos_apecaj WHERE idapecaj = @id');
+            
+            const sedeCode = apeData.recordset[0]?.codpto;
+
+            // 3. Actualizar dtl_restpos_apecaj (Marcar como cerrado)
             await transaction.request()
                 .input('id', sql.Int, idapecaj)
                 .input('feccie', sql.DateTime, now)
                 .query('UPDATE dtl_restpos_apecaj SET estado = 1, feccie = @feccie WHERE idapecaj = @id');
+
+            // 4. Limpiar tabla maestra tbl01pto
+            if (sedeCode) {
+                await transaction.request()
+                    .input('codpto', sql.Char(2), sedeCode)
+                    .query(`
+                        UPDATE tbl01pto 
+                        SET estado = 1, 
+                            apecaj = 0,
+                            apecajsol = 0,
+                            apecajdol = 0,
+                            apecajeur = 0
+                        WHERE codpto = @codpto
+                    `);
+            }
 
             await transaction.commit();
             return NextResponse.json({ success: true });

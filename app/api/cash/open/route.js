@@ -56,19 +56,46 @@ export async function POST(request) {
                 return NextResponse.json({ error: 'Tú ya tienes una caja abierta en este punto de venta' }, { status: 400 });
             }
 
-            const result = await pool.request()
-                .input('fecape', sql.DateTime, now)
-                .input('hora', sql.VarChar(12), timeStr)
-                .input('codpto', sql.Char(2), sedeCode)
-                .input('codusu', sql.Char(3), userCode)
-                .input('apesol', sql.Decimal(18, 2), amount || 0)
-                .input('nropla', sql.Char(12), nropla)
-                .query(`
-                    INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur, nropla)
-                    VALUES (@fecape, @hora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
-                    SELECT SCOPE_IDENTITY() as id;
-                `);
-            return NextResponse.json({ success: true, id: result.recordset[0].id, nropla });
+            const transaction = new sql.Transaction(pool);
+            await transaction.begin();
+
+            try {
+                const result = await transaction.request()
+                    .input('fecape', sql.DateTime, now)
+                    .input('hora', sql.VarChar(12), timeStr)
+                    .input('codpto', sql.Char(2), sedeCode)
+                    .input('codusu', sql.Char(3), userCode)
+                    .input('apesol', sql.Decimal(18, 2), amount || 0)
+                    .input('nropla', sql.Char(12), nropla)
+                    .query(`
+                        INSERT INTO dtl_restpos_apecaj (fecape, hora, codpto, codusu, tmov, estado, apesol, apedol, apeeur, nropla)
+                        VALUES (@fecape, @hora, @codpto, @codusu, 'A', 0, @apesol, 0, 0, @nropla);
+                        SELECT SCOPE_IDENTITY() as id;
+                    `);
+                
+                const newId = result.recordset[0].id;
+
+                // ACTUALIZAR TABLA MAESTRA tbl01pto
+                await transaction.request()
+                    .input('codpto', sql.Char(2), sedeCode)
+                    .input('idapecaj', sql.Int, newId)
+                    .input('apesol', sql.Decimal(18, 2), amount || 0)
+                    .query(`
+                        UPDATE tbl01pto 
+                        SET estado = 0, 
+                            apecaj = @idapecaj, 
+                            apecajsol = @apesol,
+                            apecajusu = '   ',
+                            apecajhra = GETDATE()
+                        WHERE codpto = @codpto
+                    `);
+
+                await transaction.commit();
+                return NextResponse.json({ success: true, id: newId, nropla });
+            } catch (err) {
+                await transaction.rollback();
+                throw err;
+            }
         } else {
             // Lógica Esquema POS (DB_GYM y similares)
             const sedeId = session.user.sedeId || 1;
