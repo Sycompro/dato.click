@@ -97,7 +97,7 @@ export async function GET(request) {
                 FROM dtl01fac d
                 INNER JOIN mst01fac m ON d.ndocu = m.ndocu AND d.cdocu = m.cdocu
                 LEFT JOIN prd0101 p ON d.codi = p.codi
-                LEFT JOIN tbl01fam fam ON p.codfam = fam.codfam
+                LEFT JOIN tbl01fam fam ON p.codcat = fam.codfam
                 WHERE m.idapecaj = @id
                 GROUP BY fam.nomfam
             `);
