@@ -73,7 +73,7 @@ class NavaSaleService {
         .input('tota', sql.Decimal(18, 4), breakdown.subtotal)
         .input('mone', sql.Char(1), 'S')
         .input('tcam', sql.Decimal(18, 4), exchangeRate || 1)
-        .input('codpto', sql.Char(2), warehouse.substring(0, 2))
+        .input('Codpto', sql.Char(2), warehouse.substring(0, 2))
         .input('CodAlm', sql.Char(2), warehouse.substring(0, 2))
         .input('idapecaj', sql.Int, idApeCaj)
         .input('selpago', sql.Int, globalSelPago)
@@ -91,8 +91,8 @@ class NavaSaleService {
         .input('cajvuelto', sql.Decimal(18, 4), changeGiven || 0)
         .input('cobmixta', sql.Int, isMixed ? 1 : 0)
         .query(`
-          INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta)
-          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta)
+          INSERT INTO mst01fac (cdocu, ndocu, fecha, fven, codcli, nomcli, ruccli, totn, toti, tota, mone, tcam, Codpto, CodAlm, idapecaj, selpago, codfdp, codtar, compro, codusu, flag, tfact, Codcdv, codvta, codven, codsub, cajrecib, cajvuelto, cobmixta)
+          VALUES (@cdocu, @ndocu, @fecha, @fven, @codcli, @nomcli, @ruccli, @totn, @toti, @tota, @mone, @tcam, @Codpto, @CodAlm, @idapecaj, @selpago, @codfdp, @codtar, @compro, @codusu, @flag, @tfact, @Codcdv, @codvta, @codven, @codsub, @cajrecib, @cajvuelto, @cobmixta)
         `);
 
       // C. Detalles (dtl01fac)
@@ -102,17 +102,17 @@ class NavaSaleService {
           .input('cdocu', sql.Char(2), docType)
           .input('ndocu', sql.Char(12), nextNdocu)
           .input('item', sql.Int, idx + 1)
-          .input('codart', sql.VarChar(20), item.id.substring(0, 20))
+          .input('codi', sql.VarChar(20), item.id.substring(0, 20))
           .input('descr', sql.VarChar(100), item.name.substring(0, 100))
           .input('cant', sql.Decimal(18, 4), item.quantity)
-          .input('precio', sql.Decimal(18, 4), item.price)
+          .input('preu', sql.Decimal(18, 4), item.price)
           .input('tota', sql.Decimal(18, 4), (item.price * item.quantity) / 1.18)
           .input('totn', sql.Decimal(18, 4), item.price * item.quantity)
-          .input('CodAlm', sql.Char(2), warehouse.substring(0, 2))
+          .input('Codalm', sql.Char(2), warehouse.substring(0, 2))
           .input('flag', sql.Char(1), ' ')
           .query(`
-            INSERT INTO dtl01fac (cdocu, ndocu, item, codart, descr, cant, precio, tota, totn, CodAlm, flag, dcto, dscto)
-            VALUES (@cdocu, @ndocu, @item, @codart, @descr, @cant, @precio, @tota, @totn, @CodAlm, @flag, 0, 0)
+            INSERT INTO dtl01fac (cdocu, ndocu, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2)
+            VALUES (@cdocu, @ndocu, @item, @codi, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0)
           `);
       }
 
@@ -134,13 +134,13 @@ class NavaSaleService {
         .input('tcam', sql.Decimal(18, 4), 1)
         .input('flag', sql.Char(1), '0')
         .input('codven', sql.Char(5), (codven || 'V0001').substring(0, 5))
-        .input('codpto', sql.Char(2), warehouse.substring(0, 2))
+        .input('Codpto', sql.Char(2), warehouse.substring(0, 2))
         .input('idapecaj', sql.Int, idApeCaj)
         .input('cpago', sql.Char(1), isMixed ? 'M' : ((payments[0].id === 'EF' || payments[0].type === 1) ? 'E' : 'T'))
         .input('selpago', sql.Int, globalSelPago)
         .query(`
-          INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, codpto, idapecaj, cpago, selpago)
-          VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @codpto, @idapecaj, @cpago, @selpago)
+          INSERT INTO mst01cob (cdocu, ndocu, crefe, nrefe, fecha, tmov, glosa, codcli, nomcli, monto, mone, tcam, flag, codven, Codpto, idapecaj, cpago, selpago)
+          VALUES (@cdocu, @ndocu, @crefe, @nrefe, @fecha, @tmov, @glosa, @codcli, @nomcli, @monto, @mone, @tcam, @flag, @codven, @Codpto, @idapecaj, @cpago, @selpago)
         `);
 
       // E. Detalle de Cobro (dtl01cob)
@@ -152,7 +152,7 @@ class NavaSaleService {
         await reqDtlCob
           .input('cdocu', sql.Char(2), '38')
           .input('ndocu', sql.Char(12), nroRecibo)
-          .input('item', sql.Int, idx + 1)
+          .input('npago', sql.Int, idx + 1)
           .input('crefe', sql.Char(2), docType)
           .input('nrefe', sql.Char(12), nextNdocu)
           .input('monto', sql.Decimal(18, 4), p.amount)
@@ -168,8 +168,8 @@ class NavaSaleService {
           .input('codn', sql.Char(1), ' ')
           .input('impdonac', sql.Decimal(18, 4), 0)
           .query(`
-            INSERT INTO dtl01cob (cdocu, ndocu, item, crefe, nrefe, monto, cpago, codbco, mone, tcam, codven, valori, monori, mtopad, mtopas, codn, impdonac)
-            VALUES (@cdocu, @ndocu, @item, @crefe, @nrefe, @monto, @cpago, @codbco, @mone, @tcam, @codven, @valori, @monori, @mtopad, @mtopas, @codn, @impdonac)
+            INSERT INTO dtl01cob (cdocu, ndocu, npago, crefe, nrefe, monto, cpago, codbco, mone, tcam, codven, valori, monori, mtopad, mtopas, codn, impdonac)
+            VALUES (@cdocu, @ndocu, @npago, @crefe, @nrefe, @monto, @cpago, @codbco, @mone, @tcam, @codven, @valori, @monori, @mtopad, @mtopas, @codn, @impdonac)
           `);
       }
 
