@@ -446,9 +446,15 @@ export default function POSPage() {
                                             </p>
                                         </div>
                                     </div>
-                                    <div style={{ textAlign: 'right' }}>
-                                        <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Terminal</p>
-                                        <p style={{ fontSize: '12px', fontWeight: 900, color: '#1e293b', margin: 0 }}>{session?.user?.sedeId || '01'}</p>
+                                    <div style={{ display: 'flex', gap: '20px' }}>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Tipo Cambio</p>
+                                            <p style={{ fontSize: '12px', fontWeight: 900, color: '#3b82f6', margin: 0 }}>S/ {Number(exchangeRate || 1).toFixed(3)}</p>
+                                        </div>
+                                        <div style={{ textAlign: 'right' }}>
+                                            <p style={{ fontSize: '10px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', margin: 0 }}>Terminal</p>
+                                            <p style={{ fontSize: '12px', fontWeight: 900, color: '#1e293b', margin: 0 }}>{session?.user?.sedeId || '01'}</p>
+                                        </div>
                                     </div>
                                 </div>
 
