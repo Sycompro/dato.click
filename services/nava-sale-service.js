@@ -68,12 +68,21 @@ class NavaSaleService {
       if (!resCor.recordset[0]) throw new Error(`Sin correlativo para ${docType}`);
       
       const currentNroIni = resCor.recordset[0].nroini.trim(); 
-      // Lógica robusta: separar por el primer guión y limpiar la parte numérica
+      // Lógica 100% Adaptativa: Respetar serie y longitud numérica del ERP
       const parts = currentNroIni.split('-');
-      const series = parts[0].substring(0, 3);
-      const numPart = (parts.length > 1 ? parts[1] : parts[0]).replace(/[^0-9]/g, '');
-      const nextNum = (parseInt(numPart, 10) + 1).toString().padStart(8, '0');
+      const series = parts[0]; // Sin suposiciones: Tomamos la serie tal cual viene
+      const numPartOriginal = parts.length > 1 ? parts[1] : parts[0];
+      const numPartClean = numPartOriginal.replace(/[^0-9]/g, '');
+      const nextNum = (parseInt(numPartClean, 10) + 1).toString().padStart(numPartClean.length, '0');
       const nextNdocu = `${series}-${nextNum}`;
+
+      // Mapeo Maestro de Almacenes de Producción (BD01)
+      const almMap = {
+        '01': '02', '02': '03', '09': '03', '03': '08', 
+        '04': '05', '05': '06', '06': '07', '07': '04', 
+        '10': '09', '11': '10', '12': '02', '13': '02'
+      };
+      const erpCodAlm = almMap[erpPto] || erpPto; // Fallback al Pto si no hay mapa
 
       logger.info(`[DEBUG/Sincro] ndocu: ${nextNdocu} | pto: ${erpPto} | usu: ${erpUsu}`);
       logger.info(`[DEBUG/Sincro] planilla: ${erpNroPla} | caja: ${erpCodCaj}`);
@@ -101,7 +110,7 @@ class NavaSaleService {
         .input('mone', 'S')
         .input('tcam', sql.Decimal(18, 4), safeExchangeRate)
         .input('Codpto', erpPto)
-        .input('CodAlm', warehouse.substring(0, 2))
+        .input('CodAlm', erpCodAlm)
         .input('idapecaj', sql.Int, idApeCaj)
         .input('selpago', sql.Int, globalSelPago)
         .input('codfdp', globalCodFdp.substring(0, 2))
@@ -139,7 +148,7 @@ class NavaSaleService {
           .input('preu', sql.Decimal(18, 2), Number(itemPrice.toFixed(2)))
           .input('tota', sql.Decimal(18, 2), Number(((itemPrice * itemQty) / 1.18).toFixed(2)))
           .input('totn', sql.Decimal(18, 2), Number((itemPrice * itemQty).toFixed(2)))
-          .input('Codalm', warehouse.substring(0, 2))
+          .input('Codalm', erpCodAlm)
           .input('flag', ' ')
           .input('fecha', fechaStr.substring(0, 10))
           .input('tfact', (docType === '65' ? 'N' : 'S').substring(0, 1))
