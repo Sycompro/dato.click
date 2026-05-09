@@ -1,7 +1,7 @@
+import { getConnection } from '@/lib/db';
 import { NextResponse } from 'next/server';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "../../auth/[...nextauth]/route";
-import sql from 'mssql';
 
 export async function GET(req) {
     try {
@@ -10,15 +10,7 @@ export async function GET(req) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
         }
 
-        const config = {
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            server: process.env.DB_SERVER,
-            database: session.user.company,
-            options: { encrypt: false, trustServerCertificate: true }
-        };
-
-        const pool = await sql.connect(config);
+        const pool = await getConnection(session.user.company);
         const result = await pool.request().query(`
             SELECT TOP 1 
                 codi as id, 
@@ -29,8 +21,6 @@ export async function GET(req) {
             FROM prd0101 
             WHERE codf = 'DS00' OR codi = 'DS00'
         `);
-
-        await pool.close();
 
         if (result.recordset.length === 0) {
             return NextResponse.json({ exists: false });
