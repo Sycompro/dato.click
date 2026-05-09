@@ -2,11 +2,13 @@
 import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 
-export default function PaymentSection({ total, availableMethods, payments, setPayments, onFinalize, loading, cartEmpty, onAlert }) {
-    const [showMixed, setShowMixed] = useState(false);
+export default function PaymentSection({ 
+    total, availableMethods, payments, setPayments, onFinalize, 
+    loading, cartEmpty, onAlert,
+    showMixed, setShowMixed, cashReceived, setCashReceived
+}) {
     const [tempAmount, setTempAmount] = useState('');
     const [selectedMethod, setSelectedMethod] = useState(null);
-    const [cashReceived, setCashReceived] = useState('');
 
     const subtotal = total / 1.18;
     const igv = total - subtotal;
@@ -63,7 +65,7 @@ export default function PaymentSection({ total, availableMethods, payments, setP
             {/* Cabecera / Selector de Modo */}
             <div style={headerActionStyle}>
                 <p style={labelStyle}>Método de pago</p>
-                <button 
+                <button
                     onClick={() => { setShowMixed(!showMixed); setPayments([]); setCashReceived(''); }}
                     style={{ ...modeBtnStyle, color: showMixed ? '#3b82f6' : '#94a3b8' }}
                 >
@@ -100,8 +102,8 @@ export default function PaymentSection({ total, availableMethods, payments, setP
                     <p style={{ ...labelStyle, marginBottom: '8px', color: '#64748b' }}>Efectivo Recibido</p>
                     <div style={inputGroupStyle}>
                         <Banknote size={18} style={{ color: '#10b981', alignSelf: 'center' }} />
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             placeholder={`Monto (ej. ${total + 10})`}
                             value={cashReceived}
                             onChange={e => setCashReceived(e.target.value)}
@@ -121,8 +123,8 @@ export default function PaymentSection({ total, availableMethods, payments, setP
             {showMixed && (
                 <div style={mixedPanelStyle}>
                     <div style={inputGroupStyle}>
-                        <input 
-                            type="number" 
+                        <input
+                            type="number"
                             placeholder={`Monto (S/ ${remaining.toFixed(2)})`}
                             value={tempAmount}
                             onChange={e => setTempAmount(e.target.value)}
