@@ -138,6 +138,7 @@ class NavaSaleService {
         const itemPrice = item.price || 0;
         const itemTotal = itemPrice * itemQty;
         const itemSubtotal = isTaxable ? (itemTotal / 1.18) : itemTotal;
+        const itemNetUnitPrice = isTaxable ? (itemPrice / 1.18) : itemPrice;
 
         const reqDtl = new sql.Request(transaction);
         await reqDtl
@@ -152,7 +153,7 @@ class NavaSaleService {
           .input('marc', sql.VarChar(5), (item.brand || '').substring(0, 5))
           .input('descr', item.name.substring(0, 80))
           .input('cant', sql.Decimal(18, 4), itemQty)
-          .input('preu', sql.Decimal(18, 2), Number(itemPrice.toFixed(2)))
+          .input('preu', sql.Decimal(18, 2), Number(itemNetUnitPrice.toFixed(2)))
           .input('tota', sql.Decimal(18, 2), Number(itemSubtotal.toFixed(2)))
           .input('totn', sql.Decimal(18, 2), Number(itemTotal.toFixed(2)))
           .input('Codalm', (warehouse || '01').substring(0, 2))
