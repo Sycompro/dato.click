@@ -145,8 +145,11 @@ class NavaSaleService {
           .input('cdocu', docType.substring(0, 2))
           .input('ndocu', nextNdocu.substring(0, 12))
           .input('tfact', navaTfact)
+          .input('codcli', sql.Char(6), finalCodCli.substring(0, 6))
           .input('item', sql.Int, idx + 1)
-          .input('codi', item.id.substring(0, 11))
+          .input('codi', sql.Char(11), item.id.substring(0, 11))
+          .input('codf', sql.Char(20), (item.userCode || '').substring(0, 20))
+          .input('marc', sql.VarChar(5), (item.brand || '').substring(0, 5))
           .input('descr', item.name.substring(0, 80))
           .input('cant', sql.Decimal(18, 4), itemQty)
           .input('preu', sql.Decimal(18, 2), Number(itemPrice.toFixed(2)))
@@ -160,8 +163,8 @@ class NavaSaleService {
           .input('aigv', isTaxable ? 'S' : 'N')
           .input('msto', 'S') // Activar descuento de stock
           .query(`
-            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, item, codi, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2, tcam, mone, umed, aigv, msto)
-            VALUES (@fecha, @cdocu, @ndocu, @tfact, @item, @codi, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0, @tcam, @mone, @umed, @aigv, @msto)
+            INSERT INTO dtl01fac (fecha, cdocu, ndocu, tfact, codcli, item, codi, codf, marc, descr, cant, preu, tota, totn, Codalm, flag, dsct, dsct2, tcam, mone, umed, aigv, msto)
+            VALUES (@fecha, @cdocu, @ndocu, @tfact, @codcli, @item, @codi, @codf, @marc, @descr, @cant, @preu, @tota, @totn, @Codalm, @flag, 0, 0, @tcam, @mone, @umed, @aigv, @msto)
           `);
 
         // 6.1 Inserción en KARDEX (kdd01XX) - CRÍTICO PARA DESCUENTO DE STOCK
