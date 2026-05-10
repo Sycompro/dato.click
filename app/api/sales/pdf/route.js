@@ -39,7 +39,12 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const ndocu = searchParams.get('ndocu');
     const cdocu = searchParams.get('cdocu');
-    const db = searchParams.get('db');
+    let db = searchParams.get('db');
+
+    // Si no viene la DB en la URL, intentamos usar una por defecto para evitar el error 'null'
+    if (!db) {
+        db = process.env.DB_NAME || 'BdNava03';
+    }
 
     if (!ndocu || !cdocu) return new NextResponse('Missing parameters', { status: 400 });
 

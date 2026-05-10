@@ -11,7 +11,8 @@ export async function POST(request) {
     let ENDPOINT = '';
 
     try {
-        const pool = await getConnection();
+        const dbName = process.env.DB_NAME || 'BdNava03';
+        const pool = await getConnection(dbName);
         const settings = await pool.request().query('SELECT whatsapp_url, whatsapp_token FROM tbl_pos_settings WHERE id=1');
         if (settings.recordset.length > 0) {
             let baseUrl = settings.recordset[0].whatsapp_url.trim();

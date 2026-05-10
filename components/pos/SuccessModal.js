@@ -31,7 +31,8 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
                       `¡Gracias por tu confianza!`;
             }
 
-            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${orderNumber}&cdocu=${docType}`;
+            const company = localStorage.getItem('selected_company') || 'BdNava03';
+            const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${orderNumber}&cdocu=${docType}&db=${company}`;
             
             const res = await fetch('/api/whatsapp/send', {
                 method: 'POST',
