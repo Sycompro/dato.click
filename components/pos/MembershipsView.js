@@ -223,13 +223,19 @@ export default function MembershipsView({ onRenew }) {
 
                                 {/* Inicio */}
                                 <div style={{ flex: 1, color: '#64748b', fontSize: '13px' }}>
-                                    {member.startDate ? new Date(member.startDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                                    {member.startDate ? (() => {
+                                        const [y, m, d] = member.startDate.split('-');
+                                        return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                    })() : '-'}
                                 </div>
 
                                 {/* Vencimiento */}
                                 <div style={{ flex: 1.2 }}>
                                     <div style={getExpStyle(member.status)}>
-                                        {member.endDate && !isNaN(new Date(member.endDate).getTime()) ? new Date(member.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Sin fecha'}
+                                        {member.endDate && member.endDate !== '1900-01-01' ? (() => {
+                                            const [y, m, d] = member.endDate.split('-');
+                                            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                        })() : 'Sin fecha'}
                                     </div>
                                     <div style={daysLeftStyle}>{member.daysLeft > 0 ? `${member.daysLeft}d restantes` : member.daysLeft < 0 ? `Vencido hace ${Math.abs(member.daysLeft)}d` : ''}</div>
                                 </div>
@@ -405,8 +411,11 @@ export default function MembershipsView({ onRenew }) {
                                 <Clock size={14} />
                                 {isExtension ? 'Vigencia hasta el: ' : 'Venció el: '}
                                 <span style={{ fontWeight: 700, color: '#475569' }}>
-                                    {renewingMember.endDate && new Date(renewingMember.endDate).getFullYear() > 1900 
-                                        ? new Date(renewingMember.endDate).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }) 
+                                    {renewingMember.endDate && renewingMember.endDate !== '1900-01-01' 
+                                        ? (() => {
+                                            const [y, m, d] = renewingMember.endDate.split('-');
+                                            return new Date(y, m - 1, d).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' });
+                                        })()
                                         : 'Sin registro previo'}
                                 </span>
                             </div>
