@@ -758,8 +758,30 @@ export default function POSPage() {
                                         <h2 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Ticket ({(cart || []).length})</h2>
                                     </div>
                                     <div style={{ display: 'flex', gap: '8px' }}>
-                                        <button onClick={applyGlobalDiscount} style={{ background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Descuento Global"><Percent size={18} /></button>
-                                        <button onClick={() => setCart([])} style={{ background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Vaciar Carrito"><Trash2 size={18} /></button>
+                                        <button 
+                                            disabled={cart.length === 0}
+                                            onClick={applyGlobalDiscount} 
+                                            style={{ 
+                                                background: '#f0fdf4', border: 'none', color: '#16a34a', borderRadius: '10px', padding: '8px', 
+                                                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                                                opacity: cart.length === 0 ? 0.5 : 1
+                                            }} 
+                                            title="Descuento Global"
+                                        >
+                                            <Percent size={18} />
+                                        </button>
+                                        <button 
+                                            disabled={cart.length === 0}
+                                            onClick={() => setCart([])} 
+                                            style={{ 
+                                                background: '#fff1f2', border: 'none', color: '#ef4444', borderRadius: '10px', padding: '8px', 
+                                                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                                                opacity: cart.length === 0 ? 0.5 : 1
+                                            }} 
+                                            title="Vaciar Carrito"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
                                         <button onClick={() => setShowCartModal(true)} style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', borderRadius: '10px', padding: '8px', cursor: 'pointer' }} title="Ver Categorías"><LayoutGrid size={18} /></button>
                                     </div>
                                 </div>
@@ -854,7 +876,7 @@ export default function POSPage() {
                 idApeCaj={idApeCaj}
                 onConfirm={(report) => {
                     handlePrintCashReport(report);
-                    setTimeout(() => signOut(), 3000); // Dar tiempo a imprimir antes de salir
+                    setTimeout(() => signOut(), 5000); // Dar más tiempo a imprimir antes de salir
                 }}
             />
             <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} />
@@ -1036,10 +1058,12 @@ export default function POSPage() {
 
                         <div style={{ marginBottom: '12px' }}>
                             <div style={{ fontWeight: 'bold', borderBottom: '1px dashed #000', paddingBottom: '4px', marginBottom: '4px' }}>VENTAS POR MÉTODO</div>
-                            {cashReportData.salesBreakdown.map((s, i) => (
+                            {cashReportData.salesBreakdown?.map((s, i) => (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                    <span>{s.method === 'Efectivo' ? 'EFECTIVO' : (s.codtar.trim() === '07' ? 'YAPE' : (s.codtar.trim() === '06' ? 'PLIN' : 'TARJETA'))}:</span>
-                                    <span>S/ {Number(s.total).toFixed(2)}</span>
+                                    <span>{s.method?.toUpperCase().includes('EFECTIVO') ? 'EFECTIVO' : 
+                                           (s.codtar?.trim() === '07' || s.method?.toUpperCase().includes('YAPE') ? 'YAPE' : 
+                                           (s.codtar?.trim() === '06' || s.method?.toUpperCase().includes('PLIN') ? 'PLIN' : 'TARJETA'))}:</span>
+                                    <span>S/ {Number(s.total || 0).toFixed(2)}</span>
                                 </div>
                             ))}
                             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginTop: '4px', borderTop: '1px solid #000' }}>

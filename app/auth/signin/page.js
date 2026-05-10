@@ -83,27 +83,30 @@ function SignInContent() {
               <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
             </div>
             <div>
-              <div style={{ fontSize: '22px', fontWeight: '900', letterSpacing: '-0.5px', color: '#fff' }}>SyscomPro</div>
-              <div style={{ fontSize: '11px', color: '#67e8f9', fontWeight: '800', letterSpacing: '0.25em', textTransform: 'uppercase', marginTop: '2px' }}>Cloud ERP Solution</div>
+              <div style={{ fontSize: '24px', fontWeight: '900', letterSpacing: '-0.8px', display: 'flex', alignItems: 'center' }}>
+                <span style={{ color: '#4f7df9' }}>Syscom</span>
+                <span style={{ color: '#fff' }}>.click</span>
+              </div>
+              <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: '700', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '2px' }}>Cloud ERP Solution</div>
             </div>
           </div>
 
           <div style={{ maxWidth: '440px' }}>
             <h1 className="hero-title">
-              El POS del <br />
-              <span style={{ color: '#2dd4bf' }}>futuro</span> está aquí.
+              Potencia tu Negocio con <br />
+              <span style={{ color: '#4f7df9' }}>Gestión Inteligente</span>
             </h1>
             <p className="hero-subtitle">
-              Gestión inteligente de ventas, inventarios y sucursales en un solo lugar. Conectividad nativa y segura.
+              Control total de ventas, inventarios y sucursales en una plataforma integrada y segura. Optimiza tus operaciones con tecnología de vanguardia.
             </p>
           </div>
         </div>
 
         <div style={{ position: 'relative', zIndex: 10 }}>
            <div className="security-badge">
-             <div className="security-icon">
-               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-             </div>
+              <div className="security-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4f7df9" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              </div>
              <div>
                <div style={{ fontSize: '14px', fontWeight: '800', color: '#fff' }}>Conexión Encriptada</div>
                <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)' }}>Túnel de datos activo y protegido.</div>
@@ -238,7 +241,7 @@ function SignInContent() {
           display: flex;
           flex-direction: column;
           justify-content: space-between;
-          padding: 60px;
+          padding: 40px;
           position: relative;
           color: #fff;
           box-sizing: border-box;
@@ -251,13 +254,13 @@ function SignInContent() {
           display: flex;
           align-items: center;
           justify-content: center;
-          padding: 60px;
+          padding: 40px;
           box-sizing: border-box;
         }
 
         @media (max-width: 1024px) {
           .branding-panel { display: none !important; }
-          .form-panel { width: 100% !important; padding: 40px 24px; }
+          .form-panel { width: 100% !important; padding: 32px 20px; }
         }
 
         .gradient-glow-1 { position: absolute; top: -10%; right: -10%; width: 500px; height: 500px; background: rgba(99, 102, 241, 0.15); border-radius: 50%; filter: blur(100px); }
@@ -265,42 +268,42 @@ function SignInContent() {
         .grid-overlay { position: absolute; inset: 0; opacity: 0.05; background-image: radial-gradient(#fff 1px, transparent 0); background-size: 30px 30px; }
 
         .logo-box { 
-          width: 56px; height: 56px; 
-          background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%); 
-          border-radius: 20px; 
+          width: 48px; height: 48px; 
+          background: linear-gradient(135deg, #4f7df9 0%, #3b82f6 100%); 
+          border-radius: 16px; 
           display: flex; align-items: center; justify-content: center;
-          box-shadow: 0 12px 30px rgba(59, 130, 246, 0.4);
+          box-shadow: 0 10px 25px rgba(79, 125, 249, 0.3);
           border: 1px solid rgba(255,255,255,0.1);
         }
 
-        .hero-title { font-size: 48px; font-weight: 900; line-height: 1.1; letter-spacing: -2px; margin-bottom: 28px; color: #fff; }
-        .hero-subtitle { font-size: 17px; color: rgba(255,255,255,0.45); line-height: 1.6; font-weight: 500; }
+        .hero-title { font-size: 38px; font-weight: 900; line-height: 1.1; letter-spacing: -1.5px; margin-bottom: 24px; color: #fff; }
+        .hero-subtitle { font-size: 15px; color: rgba(255,255,255,0.45); line-height: 1.6; font-weight: 500; }
 
         .security-badge { 
-          padding: 24px; 
+          padding: 18px; 
           background: rgba(255,255,255,0.03); 
-          border-radius: 28px; 
+          border-radius: 24px; 
           border: 1px solid rgba(255,255,255,0.06);
           backdrop-filter: blur(10px);
-          display: flex; align-items: center; gap: 20px;
+          display: flex; align-items: center; gap: 16px;
         }
 
-        .security-icon { width: 48px; height: 48px; background: rgba(45, 212, 191, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .security-icon { width: 42px; height: 42px; background: rgba(45, 212, 191, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 
-        .status-label { display: inline-block; padding: 6px 14px; background: #f1f5f9; border-radius: 10px; font-size: 11px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 24px; }
-        .form-title { font-size: 40px; font-weight: 900; color: #0f172a; letter-spacing: -1.5px; margin-bottom: 14px; }
-        .form-subtitle { font-size: 16px; color: #64748b; font-weight: 500; }
+        .status-label { display: inline-block; padding: 5px 12px; background: #f1f5f9; border-radius: 8px; font-size: 10px; font-weight: 900; color: #64748b; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+        .form-title { font-size: 32px; font-weight: 900; color: #0f172a; letter-spacing: -1.2px; margin-bottom: 12px; }
+        .form-subtitle { font-size: 15px; color: #64748b; font-weight: 500; }
 
-        .input-label { font-size: 12px; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; }
+        .input-label { font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 0.05em; }
         
         .custom-select {
           width: 100%;
-          padding: 22px 28px;
-          border-radius: 24px;
+          padding: 16px 22px;
+          border-radius: 20px;
           border: 2px solid #e2e8f0;
           background: #f8fafc;
           color: #0f172a;
-          font-size: 17px;
+          font-size: 15px;
           font-weight: 700;
           appearance: none;
           outline: none;
@@ -309,38 +312,38 @@ function SignInContent() {
         }
         .custom-select:focus { border-color: #3b82f6; background: #fff; }
 
-        .select-arrow { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #3b82f6; }
+        .select-arrow { position: absolute; right: 22px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #3b82f6; }
 
         .submit-btn, .login-btn {
           width: 100%;
-          padding: 22px;
-          border-radius: 24px;
+          padding: 16px;
+          border-radius: 20px;
           background: #0f172a;
           color: #fff;
           border: none;
-          font-size: 18px;
+          font-size: 16px;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+          box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
           transition: all 0.3s;
         }
-        .submit-btn:hover, .login-btn:hover { transform: translateY(-2px); box-shadow: 0 25px 50px rgba(15, 23, 42, 0.3); }
+        .submit-btn:hover, .login-btn:hover { transform: translateY(-1px); box-shadow: 0 20px 40px rgba(15, 23, 42, 0.25); }
 
-        .login-btn { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); box-shadow: 0 20px 40px rgba(37, 99, 235, 0.2); }
+        .login-btn { background: linear-gradient(135deg, #4f7df9 0%, #2563eb 100%); box-shadow: 0 15px 30px rgba(79, 125, 249, 0.15); }
 
-        .active-company-box { background: #eff6ff; padding: 24px; border-radius: 28px; border: 2px solid #bae6fd; display: flex; justify-content: space-between; align-items: center; }
-        .active-label { font-size: 10px; font-weight: 900; color: #0369a1; letter-spacing: 0.1em; text-transform: uppercase; }
-        .active-name { font-size: 17px; font-weight: 800; color: #0c4a6e; }
-        .change-btn { background: #fff; border: none; padding: 10px 18px; border-radius: 14px; color: #0ea5e9; font-weight: 800; font-size: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+        .active-company-box { background: #eff6ff; padding: 18px; border-radius: 24px; border: 2px solid #bae6fd; display: flex; justify-content: space-between; align-items: center; }
+        .active-label { font-size: 9px; font-weight: 900; color: #0369a1; letter-spacing: 0.1em; text-transform: uppercase; }
+        .active-name { font-size: 15px; font-weight: 800; color: #0c4a6e; }
+        .change-btn { background: #fff; border: none; padding: 8px 14px; border-radius: 12px; color: #0ea5e9; font-weight: 800; font-size: 11px; cursor: pointer; box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
 
         .custom-input { 
           width: 100%; 
-          padding: 22px 24px 22px 64px; 
-          border-radius: 24px; 
+          padding: 16px 20px 16px 56px; 
+          border-radius: 20px; 
           border: 2.5px solid #f1f5f9; 
           background: #f8fafc; 
           color: #0f172a; 
-          font-size: 16px; 
+          font-size: 15px; 
           font-weight: 700; 
           outline: none; 
           box-sizing: border-box;
@@ -348,13 +351,13 @@ function SignInContent() {
         }
         .custom-input:focus { border-color: #3b82f6; background: #fff; }
 
-        .input-icon { position: absolute; left: 24px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
+        .input-icon { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
         
-        .error-box { background: #fef2f2; color: #ef4444; padding: 18px 24px; border-radius: 20px; font-size: 14px; font-weight: 700; border: 1px solid #fee2e2; }
+        .error-box { background: #fef2f2; color: #ef4444; padding: 14px 20px; border-radius: 16px; font-size: 13px; font-weight: 700; border: 1px solid #fee2e2; }
 
-        .protected-footer { margin-top: 50px; display: flex; justify-content: center; align-items: center; gap: 10px; }
-        .status-dot { width: 10px; height: 10px; background: #10b981; border-radius: 50%; }
-        .status-text { font-size: 11px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.2em; text-transform: uppercase; }
+        .protected-footer { margin-top: 40px; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; background: #10b981; border-radius: 50%; }
+        .status-text { font-size: 10px; font-weight: 800; color: #cbd5e1; letter-spacing: 0.15em; text-transform: uppercase; }
 
         input::placeholder { color: #94a3b8; }
       `}</style>

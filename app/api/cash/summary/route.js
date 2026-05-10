@@ -40,7 +40,7 @@ export async function GET(request) {
                     SUM(totn) as total,
                     COUNT(*) as cantidad
                 FROM mst01fac 
-                WHERE idapecaj = @id AND estado <> 'V'
+                WHERE idapecaj = @id AND flag <> '*'
                 GROUP BY codcdv
             `);
 
@@ -48,26 +48,31 @@ export async function GET(request) {
         const paymentsRes = await pool.request()
             .input('id', sql.Int, idapecaj)
             .query(`
-                -- Pagos Digitales desde Cobranza Mixta
-                SELECT 
-                    ISNULL(t.nomtar, 'OTROS') as method,
-                    SUM(c.totn) as total
-                FROM dtl_restpos_cobmixta c
-                LEFT JOIN tbl01tar t ON c.codtar = t.codtar
-                INNER JOIN mst01fac f ON c.ndocu = f.ndocu AND c.cdocu = f.cdocu
-                WHERE f.idapecaj = @id AND c.codtar <> 'NS'
-                GROUP BY t.nomtar
-                
-                UNION ALL
-                
-                -- Efectivo Directo (Ventas que no están en cobranza mixta o son NS)
-                SELECT 'EFECTIVO' as method, SUM(totn) as total
-                FROM mst01fac m
-                WHERE idapecaj = @id AND estado <> 'V' AND NOT EXISTS (
-                    SELECT 1 FROM dtl_restpos_cobmixta c 
-                    WHERE c.ndocu = m.ndocu AND c.cdocu = m.cdocu AND c.codtar <> 'NS'
-                )
-                HAVING SUM(totn) > 0
+                SELECT method, SUM(total) as total
+                FROM (
+                    -- 1. Pagos desde Cobranza Mixta (incluyendo efectivo 'NS')
+                    SELECT 
+                        CASE WHEN c.codtar = 'NS' THEN 'EFECTIVO' ELSE ISNULL(t.nomtar, 'OTROS') END as method,
+                        SUM(c.recib) as total
+                    FROM dtl_restpos_cobmixta c
+                    LEFT JOIN tbl01tar t ON c.codtar = t.codtar
+                    INNER JOIN mst01fac f ON c.ndocu = f.ndocu AND c.cdocu = f.cdocu
+                    WHERE f.idapecaj = @id AND f.flag <> '*'
+                    GROUP BY c.codtar, t.nomtar
+                    
+                    UNION ALL
+
+                    -- 2. Pagos de ventas SIMPLES (no mixtas)
+                    SELECT 
+                        CASE WHEN ISNULL(f.codtar, '') = '' THEN 'EFECTIVO' ELSE ISNULL(t.nomtar, 'OTROS') END as method,
+                        SUM(f.totn) as total
+                    FROM mst01fac f
+                    LEFT JOIN tbl01tar t ON f.codtar = t.codtar
+                    WHERE f.idapecaj = @id AND f.flag <> '*' AND f.cobmixta = 0
+                    GROUP BY f.codtar, t.nomtar
+                ) AS ResumenPagos
+                GROUP BY method
+                HAVING SUM(total) > 0
             `);
 
         // 4. Conteo de Documentos (Sección Docs Emitidos)
@@ -83,7 +88,7 @@ export async function GET(request) {
                     SUM(f.totn) as total
                 FROM mst01fac f
                 LEFT JOIN tbl01doc d ON f.cdocu = d.cdocu
-                WHERE f.idapecaj = @id AND f.estado <> 'V'
+                WHERE f.idapecaj = @id AND f.flag <> '*'
                 GROUP BY f.cdocu, d.nomdoc
             `);
 
@@ -91,9 +96,9 @@ export async function GET(request) {
         const nullRes = await pool.request()
             .input('id', sql.Int, idapecaj)
             .query(`
-                SELECT COUNT(*) as quantity, SUM(totn) as total 
+                SELECT COUNT(*) as quantity, ISNULL(SUM(totn), 0) as total 
                 FROM mst01fac 
-                WHERE idapecaj = @id AND estado = 'V'
+                WHERE idapecaj = @id AND flag = '*'
             `);
 
         // 6. Venta por Líneas con Porcentajes
@@ -109,7 +114,7 @@ export async function GET(request) {
                 INNER JOIN mst01fac m ON d.ndocu = m.ndocu AND d.cdocu = m.cdocu
                 LEFT JOIN prd0101 p ON d.codi = p.codi
                 LEFT JOIN tbl01sbf fam ON LTRIM(RTRIM(fam.codsub)) = LEFT(p.codi, 2) + '-' + LTRIM(RTRIM(p.codcat))
-                WHERE m.idapecaj = @id AND m.estado <> 'V'
+                WHERE m.idapecaj = @id AND m.flag <> '*'
                 GROUP BY fam.nomsub
             `);
         
@@ -122,6 +127,18 @@ export async function GET(request) {
         const expRes = await pool.request()
             .input('id', sql.Int, idapecaj)
             .query('SELECT ISNULL(SUM(monto), 0) as total FROM dtl_restpos_egrcaja WHERE idapecaj = @id');
+        const totalExpenses = expRes.recordset[0].total;
+
+        // 8. Cálculos Finales de Arqueo (Paridad con Reporte ERP)
+        const totalCashCollected = paymentsRes.recordset
+            .filter(p => p.method === 'EFECTIVO')
+            .reduce((acc, curr) => acc + curr.total, 0);
+        
+        const totalDigitalCollected = paymentsRes.recordset
+            .filter(p => p.method !== 'EFECTIVO')
+            .reduce((acc, curr) => acc + curr.total, 0);
+
+        const finalCashBalance = header.apesol + totalCashCollected - totalExpenses;
 
         return NextResponse.json({
             success: true,
@@ -142,8 +159,13 @@ export async function GET(request) {
                 nullified: nullRes.recordset[0],
                 lines: lineBreakdown,
                 opening: header.apesol,
-                expenses: expRes.recordset[0].total,
-                totalSales: totalVta
+                expenses: totalExpenses,
+                totalSales: totalVta,
+                totals: {
+                    cashCollected: totalCashCollected,
+                    digitalCollected: totalDigitalCollected,
+                    finalCashBalance: finalCashBalance
+                }
             }
         });
 

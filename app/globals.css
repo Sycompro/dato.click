@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 :root {
-  --primary: #2563eb; /* Azul Corporativo */
+  --primary: #4f7df9; /* Azul Oficial Syscom.click */
   --secondary: #f97316; /* Naranja Corporativo */
   --accent-pastel: #eff6ff; /* Azul pastel muy suave */
   --bg-main: #ffffff;
@@ -30,7 +30,7 @@ body {
 
 /* Efecto de Degradado Corporativo */
 .grad-corporate {
-  background: linear-gradient(135deg, #2563eb 0%, #3b82f6 50%, #f97316 100%);
+  background: linear-gradient(135deg, #4f7df9 0%, #3b82f6 50%, #f97316 100%);
 }
 
 .grad-pastel-blue {
@@ -51,9 +51,9 @@ body {
 
 /* Botones Premium */
 .btn-corp {
-  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  background: linear-gradient(135deg, #4f7df9 0%, #2563eb 100%);
   color: white;
-  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 10px 20px rgba(79, 125, 249, 0.2);
   transition: all 0.3s ease;
 }
 

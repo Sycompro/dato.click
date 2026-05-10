@@ -66,8 +66,14 @@ export default function PaymentSection({
             <div style={headerActionStyle}>
                 <p style={labelStyle}>Método de pago</p>
                 <button
+                    disabled={cartEmpty}
                     onClick={() => { setShowMixed(!showMixed); setPayments([]); setCashReceived(''); }}
-                    style={{ ...modeBtnStyle, color: showMixed ? '#3b82f6' : '#94a3b8' }}
+                    style={{ 
+                        ...modeBtnStyle, 
+                        color: showMixed ? '#3b82f6' : '#94a3b8',
+                        opacity: cartEmpty ? 0.5 : 1,
+                        cursor: cartEmpty ? 'not-allowed' : 'pointer'
+                    }}
                 >
                     <Split size={14} /> {showMixed ? 'Volver a Simple' : 'Pago Mixto'}
                 </button>
@@ -82,12 +88,17 @@ export default function PaymentSection({
                     const isActive = isSelectedInSimple || isSelectedInMixed;
 
                     return (
-                        <button key={m.id} onClick={() => showMixed ? setSelectedMethod(m) : handleSimpleMethod(m)}
+                        <button 
+                            key={m.id} 
+                            disabled={cartEmpty}
+                            onClick={() => showMixed ? setSelectedMethod(m) : handleSimpleMethod(m)}
                             style={{
                                 ...methodBtnStyle,
                                 borderColor: isActive ? '#3b82f6' : '#f1f5f9',
                                 background: isActive ? '#3b82f6' : '#f8fafc',
                                 color: isActive ? '#fff' : '#64748b',
+                                opacity: cartEmpty ? 0.5 : 1,
+                                cursor: cartEmpty ? 'not-allowed' : 'pointer',
                             }}>
                             <Icon size={14} />
                             <span style={methodNameStyle}>{m.name}</span>
