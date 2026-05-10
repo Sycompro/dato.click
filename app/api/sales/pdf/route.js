@@ -4,6 +4,8 @@ import sql from 'mssql';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
+import fs from 'fs';
+import path from 'path';
 
 // Función para convertir números a letras (Especial para Facturación en Perú)
 function numeroALetras(num) {
@@ -123,18 +125,39 @@ export async function GET(request) {
         const doc = new jsPDF({ unit: 'mm', format: [80, 280], compress: true });
         doc.setFont('courier');
         
-        // --- CABECERA DINÁMICA ---
+        // --- CABECERA DINÁMICA CON LOGO ---
+        let currentY = 10;
+        
+        // Intentar cargar logo dinámico basado en la DB (BdNava03 -> logocia03.jpg)
+        const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
+        const logoName = `logocia${dbCode}.jpg`;
+        const logoPath = path.join(process.cwd(), 'public', 'logos', logoName);
+        
+        if (fs.existsSync(logoPath)) {
+            try {
+                const logoData = fs.readFileSync(logoPath).toString('base64');
+                const imgType = logoName.endsWith('.png') ? 'PNG' : 'JPEG';
+                // Insertar logo centrado (ajustar dimensiones si es necesario)
+                doc.addImage(`data:image/${imgType.toLowerCase()};base64,${logoData}`, imgType, 25, currentY, 30, 15);
+                currentY += 18; // Espacio después del logo
+            } catch (e) {
+                console.error("[PDF] Error cargando logo:", e.message);
+            }
+        }
+
         doc.setFontSize(9);
         doc.setFont(undefined, 'bold');
-        doc.text(headerInfo.name, 40, 10, { align: 'center' });
+        doc.text(headerInfo.name, 40, currentY, { align: 'center' });
+        currentY += 5;
+        
         doc.setFontSize(8);
         doc.setFont(undefined, 'normal');
-        doc.text(`R.U.C.: ${headerInfo.ruc}`, 40, 15, { align: 'center' });
+        doc.text(`R.U.C.: ${headerInfo.ruc}`, 40, currentY, { align: 'center' });
+        currentY += 4;
         
         const splitAddr = doc.splitTextToSize(headerInfo.address, 70);
-        doc.text(splitAddr, 40, 19, { align: 'center' });
-        
-        let currentY = 19 + (splitAddr.length * 4);
+        doc.text(splitAddr, 40, currentY, { align: 'center' });
+        currentY += (splitAddr.length * 4);
 
         doc.line(5, currentY, 75, currentY);
         const tipoDocDesc = sale.cdocu === '01' ? 'FACTURA ELECTRÓNICA' : (sale.cdocu === '03' ? 'BOLETA ELECTRÓNICA' : 'NOTA DE VENTA');
