@@ -111,7 +111,12 @@ export async function GET(request) {
         const rucEmisor = headerInfo.ruc;
         const [serie, correlativo] = sale.ndocu.split('-');
         const tipoDocCli = (sale.ruccli?.length === 11) ? "6" : "1";
-        const qrString = `${rucEmisor}|${sale.cdocu}|${serie}|${correlativo}|${Number(sale.igv).toFixed(2)}|${Number(sale.total).toFixed(2)}|${new Date(sale.fecha).toISOString().split('T')[0]}|${tipoDocCli}|${sale.ruccli || '00000000'}|${sale.efacthash || ''}|`;
+        
+        // Fecha manual para el QR (YYYY-MM-DD)
+        const fQR = new Date(sale.fecha);
+        const qrDate = `${fQR.getUTCFullYear()}-${(fQR.getUTCMonth() + 1).toString().padStart(2, '0')}-${fQR.getUTCDate().toString().padStart(2, '0')}`;
+        
+        const qrString = `${rucEmisor}|${sale.cdocu}|${serie}|${correlativo}|${Number(sale.igv).toFixed(2)}|${Number(sale.total).toFixed(2)}|${qrDate}|${tipoDocCli}|${sale.ruccli || '00000000'}|${sale.efacthash || ''}|`;
         const qrDataUrl = await QRCode.toDataURL(qrString, { margin: 1, width: 200 });
 
         // 3. Generar PDF
@@ -142,7 +147,13 @@ export async function GET(request) {
         // --- DATOS VENTA ---
         doc.setFontSize(7);
         doc.setFont(undefined, 'normal');
-        doc.text(`FECHA      : ${new Date(sale.fecha).toLocaleDateString()}`, 5, currentY);
+        const f = new Date(sale.fecha);
+        const day = f.getUTCDate().toString().padStart(2, '0');
+        const month = (f.getUTCMonth() + 1).toString().padStart(2, '0');
+        const year = f.getUTCFullYear();
+        const dateFormatted = `${day}/${month}/${year}`;
+
+        doc.text(`FECHA      : ${dateFormatted}`, 5, currentY);
         doc.text(`VENDEDOR   : ${sale.vendedor?.trim() || 'ENCARGADO'}`, 5, currentY + 4);
         doc.text(`CLIENTE    : ${sale.nomcli.trim().substring(0, 30)}`, 5, currentY + 8);
         if (sale.ruccli) doc.text(`RUC/DNI    : ${sale.ruccli.trim()}`, 5, currentY + 12);
@@ -191,7 +202,8 @@ export async function GET(request) {
         finalY += 32;
         doc.setFontSize(7);
         doc.text('STATUS: <REIMPRESION>', 5, finalY);
-        doc.text(`FECHA IMPRESION: ${new Date().toLocaleString()}`, 5, finalY + 4);
+        const printDate = new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' });
+        doc.text(`FECHA IMPRESION: ${printDate}`, 5, finalY + 4);
 
         const footerText = `Representación impresa de ${sale.cdocu === '01' ? 'Factura' : 'Boleta'} Electrónica\nPodrá ser consultada en https://www.prolineapp.pe\nAutorizado por resolución Nº287-2017/SUNAT`;
         doc.text(footerText, 40, finalY + 12, { align: 'center' });
