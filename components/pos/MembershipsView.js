@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
+import PromotionsView from './PromotionsView';
 import CustomDatePicker from './CustomDatePicker';
 
 export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName }) {
@@ -563,10 +564,11 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                     </div>
                 </div>
             ) : (
-                <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                    <RefreshCw size={48} style={{ opacity: 0.2, marginBottom: '16px' }} />
-                    <p>Módulo de Promociones en desarrollo...</p>
-                </div>
+                <PromotionsView 
+                    members={members}
+                    onSendBulk={onQueueWhatsApp}
+                    companyName={companyName}
+                />
             )}
 
 
