@@ -37,6 +37,14 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     const [isSaving, setIsSaving] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
 
+    // Auto-ocultar toast después de 3 segundos
+    useEffect(() => {
+        if (toast.show) {
+            const timer = setTimeout(() => setToast({ ...toast, show: false }), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast.show]);
+
     // ESTADOS PARA PESTAÑAS Y CUMPLEAÑOS
     const [activeTab, setActiveTab] = useState('memberships'); 
     const [birthdays, setBirthdays] = useState([]);
@@ -324,7 +332,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                                 title="Renovar"
                                                 onClick={() => {
                                                     if (member.status !== 'Vencido') {
-                                                        alert('Esta membresía aún se encuentra vigente. Si desea agregar más tiempo antes de que venza, use la opción "Extender" (icono de calendario).');
+                                                        setToast({ show: true, message: 'Esta membresía aún está vigente. Use "Extender" para añadir tiempo.', type: 'error' });
                                                         return;
                                                     }
                                                     setIsExtension(false);
@@ -351,7 +359,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                                 title="Extender"
                                                 onClick={() => {
                                                     if (member.status === 'Vencido') {
-                                                        alert('Esta membresía ya expiró. Use la opción "Renovar" (flechas azules) para iniciar un nuevo periodo hoy mismo.');
+                                                        setToast({ show: true, message: 'Esta membresía ya expiró. Use "Renovar" para iniciar un nuevo periodo.', type: 'error' });
                                                         return;
                                                     }
                                                     setIsExtension(true);
@@ -808,15 +816,15 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                             });
                                             const data = await res.json();
                                             if (data.success) {
-                                                alert('Datos actualizados correctamente');
+                                                setToast({ show: true, message: 'Datos del socio actualizados en el ERP', type: 'success' });
                                                 setEditingMember(null);
                                                 fetchMembers(); // Refrescar lista
                                                 if (activeTab === 'birthdays') fetchBirthdays();
                                             } else {
-                                                alert('Error: ' + data.error);
+                                                setToast({ show: true, message: 'Error: ' + data.error, type: 'error' });
                                             }
                                         } catch (err) {
-                                            alert('Fallo al conectar con el servidor');
+                                            setToast({ show: true, message: 'Fallo al conectar con el servidor', type: 'error' });
                                         } finally {
                                             setIsSaving(false);
                                         }
@@ -827,6 +835,26 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                 </button>
                             </div>
                         </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* NOTIFICACIÓN TOAST PREMIUM */}
+            <AnimatePresence>
+                {toast.show && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 50, x: '-50%' }}
+                        animate={{ opacity: 1, y: 0, x: '-50%' }}
+                        exit={{ opacity: 0, y: 20, x: '-50%' }}
+                        style={{
+                            position: 'fixed', bottom: '40px', left: '50%', zIndex: 3000,
+                            padding: '14px 28px', borderRadius: '20px', background: '#1e293b', color: '#fff',
+                            display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                            border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)'
+                        }}
+                    >
+                        {toast.type === 'success' ? <CheckCircle2 size={22} color="#10b981" /> : <XCircle size={22} color="#ef4444" />}
+                        <span style={{ fontSize: '15px', fontWeight: 800, letterSpacing: '-0.3px' }}>{toast.message}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
