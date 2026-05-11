@@ -701,7 +701,7 @@ export default function POSPage() {
                                                                         <div>
                                                                             <p style={{ margin: 0, fontSize: '11px', fontWeight: 700 }}>{m.phone}</p>
                                                                             <p style={{ margin: 0, fontSize: '10px', color: m.status === 'ERROR' ? '#ef4444' : '#64748b' }}>
-                                                                                {m.status === 'ERROR' ? `Error: ${m.error}` : 'Enviando comprobante...'}
+                                                                                {m.status === 'ERROR' ? `Error: ${m.error}` : 'Enviando mensaje...'}
                                                                             </p>
                                                                         </div>
                                                                         {m.status === 'ERROR' && (

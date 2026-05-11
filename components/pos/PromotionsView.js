@@ -92,7 +92,7 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
             onSendBulk(member.phone, personalizedMsg, null);
             
             setProgress(prev => ({ ...prev, current: prev.current + 1 }));
-            await new Promise(r => setTimeout(r, 100)); // Delay mínimo para estabilidad
+            await new Promise(r => setTimeout(r, 20)); // Delay ultra rápido (0.02s)
         }
 
         setTimeout(() => {
