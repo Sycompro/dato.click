@@ -951,7 +951,7 @@ export default function POSPage() {
                     {activeTab === 'memberships' && (
                         <motion.div
                             key="memberships" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                            style={{ flex: 1, display: 'flex', overflow: 'hidden' }}
+                            style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
                         >
                             <MembershipsView 
                     onRenew={handleRenew} 

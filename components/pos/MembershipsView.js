@@ -858,7 +858,7 @@ function StatCard({ title, count, icon, color, bgColor }) {
 }
 
 // Estilos
-const containerStyle = { padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', flex: 1, background: '#f8fafc' };
+const containerStyle = { padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', flex: 1, background: '#f8fafc', height: '100%', maxHeight: '100%' };
 
 const headerContainerStyle = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
