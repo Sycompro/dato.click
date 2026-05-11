@@ -7,7 +7,10 @@ import { useState, useEffect } from 'react';
 export default function SettingsModal({ isOpen, onClose, db }) {
     const [businessType, setBusinessType] = useState('gym'); // 'gym' o 'universal'
     const [posLogo, setPosLogo] = useState('');
+    const [customName, setCustomName] = useState('');
+    const [useCustomName, setUseCustomName] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     const logoKey = `pos_logo_${db}`;
     const typeKey = `pos_business_type_${db}`;
@@ -19,30 +22,61 @@ export default function SettingsModal({ isOpen, onClose, db }) {
     ];
 
     useEffect(() => {
-        if (db) {
-            const storedType = localStorage.getItem(typeKey);
-            const storedLogo = localStorage.getItem(logoKey);
-            if (storedType) setBusinessType(storedType);
-            
-            // Si no hay logo guardado, usamos el default por código de DB
-            if (storedLogo) {
-                setPosLogo(storedLogo);
-            } else {
-                const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
-                setPosLogo(`logocia${dbCode}.jpg`);
+        const fetchSettings = async () => {
+            if (!db) return;
+            setLoading(true);
+            try {
+                // Cargar datos locales (Rubro y Logo)
+                const storedType = localStorage.getItem(typeKey);
+                const storedLogo = localStorage.getItem(logoKey);
+                if (storedType) setBusinessType(storedType);
+                
+                if (storedLogo) {
+                    setPosLogo(storedLogo);
+                } else {
+                    const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
+                    setPosLogo(`logocia${dbCode}.jpg`);
+                }
+
+                // Cargar datos del servidor (Nombre Personalizado)
+                const res = await fetch('/api/company/settings');
+                const data = await res.json();
+                if (data.company) {
+                    setCustomName(data.company.customName || '');
+                    setUseCustomName(data.company.useCustomName || false);
+                }
+            } catch (e) {
+                console.error("Error al cargar configuraciones:", e);
+            } finally {
+                setLoading(false);
             }
-        }
+        };
+
+        fetchSettings();
     }, [db]);
 
-    const handleSave = () => {
-        localStorage.setItem(typeKey, businessType);
-        localStorage.setItem(logoKey, posLogo);
-        setSaved(true);
-        setTimeout(() => {
-            setSaved(false);
-            onClose();
-            window.location.reload();
-        }, 1500);
+    const handleSave = async () => {
+        try {
+            // 1. Guardar en LocalStorage (Rubro y Logo)
+            localStorage.setItem(typeKey, businessType);
+            localStorage.setItem(logoKey, posLogo);
+
+            // 2. Guardar en SQLite (Nombre Personalizado)
+            await fetch('/api/company/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ customName, useCustomName })
+            });
+
+            setSaved(true);
+            setTimeout(() => {
+                setSaved(false);
+                onClose();
+                window.location.reload();
+            }, 1500);
+        } catch (e) {
+            alert("Error al guardar la configuración");
+        }
     };
 
     if (!isOpen) return null;
@@ -109,6 +143,63 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                                 </div>
                                 {businessType === 'universal' && <div style={checkCircleStyle}><Check size={14} /></div>}
                             </div>
+                        </div>
+
+                        {/* IDENTIDAD DE MARCA */}
+                        <label style={{ ...labelStyle, marginTop: '32px' }}>IDENTIDAD DE MARCA</label>
+                        <p style={infoTextStyle}>
+                            <Info size={14} /> Personaliza el nombre que aparece en los WhatsApps de membresía.
+                        </p>
+
+                        <div style={{ 
+                            background: '#f8fafc', padding: '20px', borderRadius: '20px', 
+                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px' 
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>
+                                        Usar Nombre Personalizado
+                                    </h4>
+                                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
+                                        Activa esta opción para ignorar el nombre del RUC en el ERP.
+                                    </p>
+                                </div>
+                                <div 
+                                    onClick={() => setUseCustomName(!useCustomName)}
+                                    style={{
+                                        width: '48px', height: '24px', borderRadius: '24px',
+                                        background: useCustomName ? '#10b981' : '#cbd5e1',
+                                        padding: '4px', cursor: 'pointer', transition: 'all 0.3s ease',
+                                        display: 'flex', alignItems: 'center',
+                                        justifyContent: useCustomName ? 'flex-end' : 'flex-start'
+                                    }}
+                                >
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                </div>
+                            </div>
+
+                            <AnimatePresence>
+                                {useCustomName && (
+                                    <motion.div
+                                        initial={{ opacity: 0, height: 0 }}
+                                        animate={{ opacity: 1, height: 'auto' }}
+                                        exit={{ opacity: 0, height: 0 }}
+                                        style={{ overflow: 'hidden' }}
+                                    >
+                                        <input 
+                                            type="text"
+                                            placeholder="Escribe el nombre de tu negocio aquí..."
+                                            value={customName}
+                                            onChange={(e) => setCustomName(e.target.value)}
+                                            style={{
+                                                width: '100%', padding: '12px 16px', borderRadius: '12px',
+                                                border: '2px solid #3b82f6', outline: 'none',
+                                                fontSize: '14px', fontWeight: 600, color: '#1e293b'
+                                            }}
+                                        />
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
 
                         {/* LOGO SELECTOR */}
