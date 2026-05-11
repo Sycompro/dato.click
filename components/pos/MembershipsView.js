@@ -33,6 +33,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     // Estados para WhatsApp
     const [showWAModal, setShowWAModal] = useState(false);
     const [selectedMemberWA, setSelectedMemberWA] = useState(null);
+    const [waForceCategory, setWaForceCategory] = useState(null);
     const [editingMember, setEditingMember] = useState(null);
     const [isSaving, setIsSaving] = useState(false);
     const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
@@ -346,6 +347,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setSelectedMemberWA(member);
+                                                    setWaForceCategory(null); // Normal en tabla
                                                     setShowWAModal(true);
                                                 }}
                                             />
@@ -575,36 +577,16 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                 onClose={() => setShowWAModal(false)}
                 member={selectedMemberWA}
                 companyName={finalCompanyName}
+                forceCategory={waForceCategory}
                 onSend={(phone, msg) => {
                     if (onQueueWhatsApp) {
                         onQueueWhatsApp(phone, msg);
-                        // Mostrar Toast de éxito
                         setToast({ show: true, message: 'Mensaje enviado a la cola de WhatsApp', type: 'success' });
-                        setTimeout(() => setToast({ ...toast, show: false }), 3000);
                     }
                 }}
             />
 
             {/* TOAST NOTIFICATION */}
-            <AnimatePresence>
-                {toast.show && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -50, x: '-50%' }}
-                        animate={{ opacity: 1, y: 20, x: '-50%' }}
-                        exit={{ opacity: 0, y: -50, x: '-50%' }}
-                        style={{
-                            position: 'fixed', top: 0, left: '50%', transform: 'translateX(-50%)',
-                            background: toast.type === 'success' ? '#10b981' : '#ef4444',
-                            color: '#fff', padding: '12px 24px', borderRadius: '12px',
-                            boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)', zIndex: 10000,
-                            display: 'flex', alignItems: 'center', gap: '8px', fontWeight: '600'
-                        }}
-                    >
-                        {toast.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
-                        {toast.message}
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             {/* Modal de Renovación */}
             {renewingMember && (

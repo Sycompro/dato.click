@@ -7,9 +7,23 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, companyName = 'nuestro gimnasio' }) {
+export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, companyName = 'nuestro gimnasio', forceCategory = null }) {
     const [message, setMessage] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(forceCategory);
+
+    // Si cambia el forceCategory o el miembro, resetear
+    useEffect(() => {
+        if (forceCategory) {
+            setSelectedCategory(forceCategory);
+            // Seleccionar automáticamente la primera plantilla de la categoría forzada
+            if (templates[forceCategory]) {
+                setMessage(templates[forceCategory][0]);
+            }
+        } else {
+            setSelectedCategory(null);
+            setMessage('');
+        }
+    }, [forceCategory, member?.id, isOpen]);
 
     // Formatear fecha para el mensaje
     const formatMsgDate = (dateStr) => {
@@ -21,6 +35,7 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, 
     };
 
     const categories = [
+        { id: 'cumpleanos', label: 'Cumpleaños', icon: <Gift size={16} />, color: '#f43f5e' },
         { id: 'vencimiento', label: 'Vencimiento', icon: <Calendar size={16} />, color: '#f97316' },
         { id: 'bienvenida', label: 'Bienvenida', icon: <Heart size={16} />, color: '#ec4899' },
         { id: 'motivacion', label: 'Motivación', icon: <Dumbbell size={16} />, color: '#3b82f6' },
@@ -30,7 +45,10 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, 
         { id: 'logro', label: 'Logro/Felic.', icon: <Award size={16} />, color: '#10b981' },
     ];
 
-    const templates = {
+        cumpleanos: [
+            `¡Feliz cumpleaños *${member?.name}*! 🎂🥳 De parte de todo el equipo de *${companyName}*, te deseamos un día increíble lleno de salud y muchos entrenamientos. ¡A celebrar! 🎈🥤\n\nTu familia de *${companyName}*`,
+            `¡Hoy es un día especial, *${member?.name}*! 🎉 El equipo de *${companyName}* te desea un muy feliz cumpleaños. ¡Gracias por ser parte de nuestra comunidad! 🏋️✨\n\nAtentamente, *${companyName}*`
+        ],
         vencimiento: [
             `¡Hola *${member?.name}*! 🏋️ Te saludamos de *${companyName}*. Te recordamos que tu plan vence el *${formatMsgDate(member?.endDate)}*. ¡No detengas tu progreso! Te esperamos hoy para entrenar. 💪\n\nTu equipo de *${companyName}*`,
             `¡Atención *${member?.name}*! 🚨 Tu membresía en *${companyName}* está por finalizar. Asegura tu renovación y sigue con ese gran ritmo. ¡Te esperamos! 🔥\n\nAtentamente, *${companyName}*`
@@ -90,11 +108,12 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, 
                     </div>
 
                     <div style={contentStyle}>
-                        {/* Categorías */}
-                        <div style={{ marginBottom: '20px' }}>
-                            <label style={labelStyle}>CATEGORÍAS INTELIGENTES</label>
-                            <div style={categoryGridStyle}>
-                                {categories.map(cat => (
+                        {/* Categorías (Solo si no hay categoría forzada) */}
+                        {!forceCategory && (
+                            <div style={{ marginBottom: '20px' }}>
+                                <label style={labelStyle}>CATEGORÍAS INTELIGENTES</label>
+                                <div style={categoryGridStyle}>
+                                    {categories.map(cat => (
                                     <button 
                                         key={cat.id}
                                         onClick={() => setSelectedCategory(cat.id)}
@@ -109,9 +128,9 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, 
                                         <span>{cat.label}</span>
                                     </button>
                                 ))}
+                                </div>
                             </div>
-                        </div>
-
+                        )}
                         {/* Plantillas Sugeridas */}
                         {selectedCategory && (
                             <motion.div 
