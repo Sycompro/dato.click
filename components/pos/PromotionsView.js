@@ -159,6 +159,7 @@ export default function PromotionsView({ members, onSendBulk, companyName }) {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div style={labelStyle}>2. REDACTAR CAMPAÑA</div>
                         <div style={{ display: 'flex', gap: '8px' }}>
+                            <button onClick={() => { setMessage(''); setSelectedTemplate(null); }} style={aiBtnStyle} title="Limpiar Mensaje"><Trash2 size={14} /> Limpiar</button>
                             <button onClick={() => handleMagicWand('fun')} style={aiBtnStyle} title="Tono Divertido"><Wand2 size={14} /> Divertido</button>
                             <button onClick={() => handleMagicWand('formal')} style={aiBtnStyle} title="Tono Formal"><Zap size={14} /> Profesional</button>
                         </div>

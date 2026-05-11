@@ -53,6 +53,17 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth() + 1);
     const [loadingBirthdays, setLoadingBirthdays] = useState(false);
 
+    // Limpiar filtros al cambiar de pestaña
+    useEffect(() => {
+        setSearchTerm('');
+        setFilterStatus('all');
+        setFilterSede('my');
+        setPlanSearchTerm('');
+        setEditingMember(null);
+        setSelectedMemberWA(null);
+        setShowWAModal(false);
+    }, [activeTab]);
+
     const monthNames = [
         "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
         "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
