@@ -42,6 +42,12 @@ export default function POSPage() {
     const [waQueue, setWaQueue] = useState([]); // {id, phone, message, media_url, status, error}
     const [isProcessingWa, setIsProcessingWa] = useState(false);
     const [showWaAlerts, setShowWaAlerts] = useState(false);
+    const [posLogo, setPosLogo] = useState('logocia01.jpg');
+
+    useEffect(() => {
+        const storedLogo = localStorage.getItem('pos_logo');
+        if (storedLogo) setPosLogo(storedLogo);
+    }, []);
 
     const addToWaQueue = (phone, message, media_url) => {
         const newMsg = {
@@ -1046,9 +1052,9 @@ export default function POSPage() {
                     <div>
                         <div style={{ textAlign: 'center', marginBottom: '8px' }}>
                             <div style={{ fontWeight: 'bold', fontSize: '14px' }}>{companySettings?.company?.name || ''}</div>
-                            <div style={{ margin: '4px 0' }}>
-                                <Image src="/logo-ticket.png" width={120} height={50} alt="Logo" style={{ display: 'block', margin: '0 auto' }} />
-                            </div>
+                             <div style={{ margin: '4px 0' }}>
+                                 <img src={`/logos/${posLogo}`} width="120" alt="Logo" style={{ display: 'block', margin: '0 auto', maxHeight: '50px', objectFit: 'contain' }} />
+                             </div>
                             <div>R.U.C.: {companySettings?.company?.ruc || ''}</div>
                             <div style={{ fontSize: '10px' }}>{companySettings?.company?.address || ''}</div>
                             <div>Telf: {companySettings?.company?.phone || ''}</div>

@@ -128,9 +128,10 @@ export async function GET(request) {
         // --- CABECERA DINÁMICA CON LOGO ---
         let currentY = 10;
         
-        // Intentar cargar logo dinámico basado en la DB (BdNava03 -> logocia03.jpg)
+        // Intentar cargar logo dinámico basado en parámetro o DB
+        const queryLogo = searchParams.get('logo');
         const dbCode = db?.replace('BdNava', '').padStart(2, '0') || '01';
-        const logoName = `logocia${dbCode}.jpg`;
+        const logoName = queryLogo || `logocia${dbCode}.jpg`;
         const logoPath = path.join(process.cwd(), 'public', 'logos', logoName);
         
         console.log(`[PDF/Logo] DB Recibida: ${db}, Code: ${dbCode}, Buscando: ${logoPath}`);

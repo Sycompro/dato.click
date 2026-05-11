@@ -6,19 +6,30 @@ import { useState, useEffect } from 'react';
 
 export default function SettingsModal({ isOpen, onClose }) {
     const [businessType, setBusinessType] = useState('gym'); // 'gym' o 'universal'
+    const [posLogo, setPosLogo] = useState('logocia01.jpg');
     const [saved, setSaved] = useState(false);
 
+    const availableLogos = [
+        { id: 'logocia01.jpg', name: 'Logo Empresa 01' },
+        { id: 'logocia02.jpg', name: 'Logo Empresa 02' },
+        { id: 'logocia03.jpg', name: 'Logo Empresa 03' },
+    ];
+
     useEffect(() => {
-        const stored = localStorage.getItem('pos_business_type');
-        if (stored) setBusinessType(stored);
+        const storedType = localStorage.getItem('pos_business_type');
+        const storedLogo = localStorage.getItem('pos_logo');
+        if (storedType) setBusinessType(storedType);
+        if (storedLogo) setPosLogo(storedLogo);
     }, []);
 
     const handleSave = () => {
         localStorage.setItem('pos_business_type', businessType);
+        localStorage.setItem('pos_logo', posLogo);
         setSaved(true);
         setTimeout(() => {
             setSaved(false);
             onClose();
+            window.location.reload(); // Recargar para que los cambios surtan efecto
         }, 1500);
     };
 
@@ -43,14 +54,14 @@ export default function SettingsModal({ isOpen, onClose }) {
                     </div>
 
                     {/* Content */}
-                    <div style={contentStyle}>
+                    <div style={{ ...contentStyle, maxHeight: '70vh', overflowY: 'auto' }}>
+                        {/* RUBRO */}
                         <label style={labelStyle}>RUBRO DEL NEGOCIO</label>
                         <p style={infoTextStyle}>
-                            <Info size={14} /> Selecciona el rubro para personalizar los mensajes de WhatsApp automáticos.
+                            <Info size={14} /> Determina el formato de los mensajes de WhatsApp.
                         </p>
 
                         <div style={gridStyle}>
-                            {/* Opción GYM */}
                             <div 
                                 onClick={() => setBusinessType('gym')}
                                 style={{
@@ -63,13 +74,12 @@ export default function SettingsModal({ isOpen, onClose }) {
                                     <Dumbbell size={24} />
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <h3 style={optionTitleStyle}>Gimnasio / Centro Fitness</h3>
-                                    <p style={optionDescStyle}>Mensajes con fecha de inicio, vencimiento y bienvenida al socio.</p>
+                                    <h3 style={optionTitleStyle}>Gimnasio</h3>
+                                    <p style={optionDescStyle}>Incluye vigencia de membresía en mensajes.</p>
                                 </div>
                                 {businessType === 'gym' && <div style={checkCircleStyle}><Check size={14} /></div>}
                             </div>
 
-                            {/* Opción UNIVERSAL */}
                             <div 
                                 onClick={() => setBusinessType('universal')}
                                 style={{
@@ -82,11 +92,37 @@ export default function SettingsModal({ isOpen, onClose }) {
                                     <Store size={24} />
                                 </div>
                                 <div style={{ flex: 1 }}>
-                                    <h3 style={optionTitleStyle}>Comercio Universal</h3>
-                                    <p style={optionDescStyle}>Mensajes estándar de agradecimiento con detalle de compra y monto.</p>
+                                    <h3 style={optionTitleStyle}>Universal</h3>
+                                    <p style={optionDescStyle}>Mensajes estándar de agradecimiento.</p>
                                 </div>
                                 {businessType === 'universal' && <div style={checkCircleStyle}><Check size={14} /></div>}
                             </div>
+                        </div>
+
+                        {/* LOGO SELECTOR */}
+                        <label style={{ ...labelStyle, marginTop: '32px' }}>LOGO DE COMPROBANTE</label>
+                        <p style={infoTextStyle}>
+                            <Info size={14} /> Selecciona el logo que aparecerá en el PDF impreso y digital.
+                        </p>
+
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                            {availableLogos.map(logo => (
+                                <div 
+                                    key={logo.id}
+                                    onClick={() => setPosLogo(logo.id)}
+                                    style={{
+                                        padding: '12px', border: '2px solid', borderRadius: '16px',
+                                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                                        borderColor: posLogo === logo.id ? '#3b82f6' : '#f1f5f9',
+                                        background: posLogo === logo.id ? '#eff6ff' : '#fff'
+                                    }}
+                                >
+                                    <div style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                        <img src={`/logos/${logo.id}`} alt={logo.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                    </div>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: posLogo === logo.id ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
 

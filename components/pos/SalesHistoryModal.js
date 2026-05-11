@@ -69,7 +69,8 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
         if (!whatsappPhone || whatsappPhone.length < 9) return;
         
         const activeDb = company || localStorage.getItem('selected_company') || 'BdNava03';
-        const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}`;
+        const logo = localStorage.getItem('pos_logo') || 'logocia01.jpg';
+        const pdfUrl = `${window.location.origin}/api/sales/pdf?ndocu=${whatsappSale.ndocu}&cdocu=${whatsappSale.cdocu}&db=${activeDb}&logo=${logo}`;
         const msg = `*¡Gracias por tu compra!* 🤝\n\n` +
                     `📄 *Detalles del pedido:*\n` +
                     `* • Documento:* ${whatsappSale.cdocu === '01' ? 'Factura' : (whatsappSale.cdocu === '03' ? 'Boleta' : 'Nota')} ${whatsappSale.ndocu}\n` +
