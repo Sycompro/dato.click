@@ -111,6 +111,10 @@ export async function GET(request) {
             };
         });
 
+        // Ordenar por prioridad: Próximo (Amarillo) -> Por vencer (Naranja) -> Activo (Verde) -> Vencido (Rojo)
+        const priority = { 'Próximo': 1, 'Por vencer': 2, 'Activo': 3, 'Vencido': 4 };
+        data.sort((a, b) => priority[a.status] - priority[b.status]);
+
         // Filtrar por estado si es necesario
         const filteredData = status === 'all' ? data : 
                              status === 'por vencer' ? data.filter(d => d.status === 'Por vencer' || d.status === 'Próximo') :
