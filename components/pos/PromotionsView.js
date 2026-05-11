@@ -64,9 +64,12 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
 
     const handleMagicWand = (tone) => {
         let newMsg = message;
-        if (tone === 'fun') newMsg = "🚀 " + message + " ¡Va a estar increíble! 🔥💪";
-        if (tone === 'formal') newMsg = "Estimado [Nombre], " + message.toLowerCase() + " Quedamos a su disposición.";
-        if (tone === 'urgent') newMsg = "🔴 AVISO IMPORTANTE: " + message + " ¡Última oportunidad!";
+        const signature = `\n\nTu equipo de *${companyName}* 💪`;
+        
+        if (tone === 'fun') newMsg = "🚀 " + message + " ¡Va a estar increíble! 🔥" + signature;
+        if (tone === 'formal') newMsg = "Estimado [Nombre], " + message.toLowerCase() + " Quedamos a su entera disposición." + signature;
+        if (tone === 'urgent') newMsg = "🔴 AVISO IMPORTANTE: " + message + " ¡Es ahora o nunca! ⚡" + signature;
+        
         setMessage(newMsg);
     };
 
@@ -75,30 +78,39 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
         if (!message) return onNotify('El mensaje no puede estar vacío', 'error');
 
         setIsSending(true);
-        setProgress({ current: 0, total: targetMembers.length });
+        const total = targetMembers.length;
+        setProgress({ current: 0, total });
 
-        for (const member of targetMembers) {
-            if (!member.phone || member.phone.length < 5) {
-                console.warn(`[Promotions] Saltando socio ${member.name} por falta de teléfono`);
-                continue;
+        // Procesar en bloques para no congelar la UI si hay cientos de socios
+        const processChunk = async (startIndex) => {
+            const chunkSize = 10;
+            const endIndex = Math.min(startIndex + chunkSize, total);
+
+            for (let i = startIndex; i < endIndex; i++) {
+                const member = targetMembers[i];
+                if (member.phone && member.phone.length >= 5) {
+                    const personalizedMsg = message
+                        .replace(/\[Nombre\]/g, member.name)
+                        .replace(/\[Plan\]/g, member.planName || 'tu plan')
+                        .replace(/\[DiasRestantes\]/g, member.daysRemaining || 'pocos');
+                    
+                    onSendBulk(member.phone, personalizedMsg, null);
+                }
+                setProgress(prev => ({ ...prev, current: i + 1 }));
             }
 
-            let personalizedMsg = message
-                .replace(/\[Nombre\]/g, member.name)
-                .replace(/\[Plan\]/g, member.planName || 'tu plan')
-                .replace(/\[DiasRestantes\]/g, member.daysRemaining || 'pocos');
-            
-            // Enviamos a la cola central: (phone, message, media_url)
-            onSendBulk(member.phone, personalizedMsg, null);
-            
-            setProgress(prev => ({ ...prev, current: prev.current + 1 }));
-            await new Promise(r => setTimeout(r, 20)); // Delay ultra rápido (0.02s)
-        }
+            if (endIndex < total) {
+                // Dar un respiro a la UI antes del siguiente bloque
+                setTimeout(() => processChunk(endIndex), 10);
+            } else {
+                setTimeout(() => {
+                    setIsSending(false);
+                    onNotify(`¡Éxito! Campaña enviada (${total} mensajes).`, 'success');
+                }, 500);
+            }
+        };
 
-        setTimeout(() => {
-            setIsSending(false);
-            onNotify(`¡Éxito! Campaña enviada a la cola (${targetMembers.length} mensajes).`, 'success');
-        }, 800);
+        processChunk(0);
     };
 
     return (
