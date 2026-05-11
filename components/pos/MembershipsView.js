@@ -129,110 +129,105 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
 
     return (
         <div style={containerStyle}>
-            {/* TABS SELECTOR (Navegación Superior) */}
-            <div style={tabsWrapperStyle}>
-                <button 
-                    onClick={() => setActiveTab('memberships')}
-                    style={{ ...tabStyle, ...(activeTab === 'memberships' ? activeTabActiveStyle : {}) }}
-                >
-                    <Users size={18} /> Membresías
-                </button>
-                <button 
-                    onClick={() => setActiveTab('promotions')}
-                    style={{ ...tabStyle, ...(activeTab === 'promotions' ? activeTabActiveStyle : { color: '#64748b' }) }}
-                >
-                    <RefreshCw size={18} /> Promociones
-                </button>
-                <button 
-                    onClick={() => setActiveTab('birthdays')}
-                    style={{ ...tabStyle, ...(activeTab === 'birthdays' ? birthdayTabActiveStyle : { color: '#64748b' }) }}
-                >
-                    <Calendar size={18} /> Cumpleaños
-                </button>
+            {/* CABECERA Y NAVEGACIÓN COMPACTA */}
+            <div style={headerContainerStyle}>
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    <h1 style={{ fontSize: '18px', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+                        {activeTab === 'memberships' ? 'Membresías' : activeTab === 'birthdays' ? 'Cumpleaños' : 'Promociones'}
+                    </h1>
+                    <p style={{ fontSize: '11px', color: '#64748b', marginTop: '1px' }}>
+                        {activeTab === 'memberships' ? 'Seguimiento y renovación' : activeTab === 'birthdays' ? 'Eventos del mes' : 'Gestión de ofertas'}
+                    </p>
+                </div>
+
+                <div style={tabsWrapperStyle}>
+                    <button 
+                        onClick={() => setActiveTab('memberships')}
+                        style={{ ...tabStyle, ...(activeTab === 'memberships' ? activeTabActiveStyle : {}) }}
+                    >
+                        <Users size={14} /> Membresías
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('promotions')}
+                        style={{ ...tabStyle, ...(activeTab === 'promotions' ? activeTabActiveStyle : {}) }}
+                    >
+                        <RefreshCw size={14} /> Promociones
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('birthdays')}
+                        style={{ ...tabStyle, ...(activeTab === 'birthdays' ? birthdayTabActiveStyle : {}) }}
+                    >
+                        <Calendar size={14} /> Cumpleaños
+                    </button>
+                </div>
             </div>
 
             {activeTab === 'memberships' ? (
                 <>
-                    {/* Cabecera Principal */}
-                    <div style={{ marginBottom: '4px' }}>
-                        <h1 style={{ fontSize: '20px', fontWeight: 900, color: '#0f172a', margin: 0 }}>Gestión de Membresías</h1>
-                        <p style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>Seguimiento, renovación y extensión de planes.</p>
+                    {/* RESUMEN DE ESTADOS (Compacto) */}
+                    <div style={statsCompactGridStyle}>
+                        <StatCard 
+                            title="ACTIVAS" 
+                            count={stats.active} 
+                            icon={<CheckCircle2 size={16} />} 
+                            color="#10b981" 
+                            bgColor="#f0fdf4" 
+                        />
+                        <StatCard 
+                            title="POR VENCER" 
+                            count={stats.expiring} 
+                            icon={<AlertCircle size={16} />} 
+                            color="#f59e0b" 
+                            bgColor="#fffbeb" 
+                        />
+                        <StatCard 
+                            title="VENCIDAS" 
+                            count={stats.expired} 
+                            icon={<XCircle size={16} />} 
+                            color="#ef4444" 
+                            bgColor="#fef2f2" 
+                        />
+                        <StatCard 
+                            title="TOTAL" 
+                            count={stats.total} 
+                            icon={<Users size={16} />} 
+                            color="#3b82f6" 
+                            bgColor="#eff6ff" 
+                        />
                     </div>
 
-                    {/* Apartado: Resumen de estados */}
-                    <div>
-                        <label style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', marginBottom: '8px', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Resumen de estados
-                        </label>
-                        <div style={statsGridStyle}>
-                            <StatCard 
-                                title="ACTIVAS" 
-                                count={stats.active} 
-                                icon={<CheckCircle2 size={20} />} 
-                                color="#10b981" 
-                                bgColor="#ecfdf5" 
-                            />
-                            <StatCard 
-                                title="POR VENCER" 
-                                count={stats.expiring} 
-                                icon={<AlertCircle size={20} />} 
-                                color="#f59e0b" 
-                                bgColor="#fffbeb" 
-                            />
-                            <StatCard 
-                                title="VENCIDAS" 
-                                count={stats.expired} 
-                                icon={<XCircle size={20} />} 
-                                color="#ef4444" 
-                                bgColor="#fef2f2" 
-                            />
-                            <StatCard 
-                                title="TOTAL" 
-                                count={stats.total} 
-                                icon={<Users size={20} />} 
-                                color="#3b82f6" 
-                                bgColor="#eff6ff" 
-                            />
-                        </div>
-                    </div>
-
-                    {/* Apartado: Listado y Filtros (ESTO AHORA ESTÁ DENTRO) */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '20px' }}>
-                        <label style={{ fontSize: '11px', fontWeight: 800, color: '#94a3b8', display: 'block', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                            Listado detallado de socios
-                        </label>
-                        <div style={filterBarStyle}>
-                        <div style={searchWrapperStyle}>
-                            <Search size={18} style={{ color: '#94a3b8' }} />
+                    {/* BARRA DE ACCIÓN Y FILTROS INTEGRADA */}
+                    <div style={integratedFilterBarStyle}>
+                        <div style={compactSearchWrapperStyle}>
+                            <Search size={16} style={{ color: '#94a3b8' }} />
                             <input 
                                 type="text" 
-                                placeholder="Buscar por miembro, teléfono o plan..." 
+                                placeholder="Buscar miembro o teléfono..." 
                                 style={searchInputStyle}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
                         
-                        <div style={actionsRowStyle}>
+                        <div style={{ display: 'flex', gap: '8px' }}>
                             <select 
-                                style={selectStyle}
+                                style={compactSelectStyle}
                                 value={filterSede}
                                 onChange={(e) => setFilterSede(e.target.value)}
                             >
-                                <option value="all">Todas las sedes</option>
-                                <option value="my">Mi sede</option>
+                                <option value="all">Sedes</option>
+                                <option value="my">Mi Sede</option>
                             </select>
                             <select 
-                                style={selectStyle} 
+                                style={compactSelectStyle} 
                                 value={filterStatus}
                                 onChange={(e) => setFilterStatus(e.target.value)}
                             >
-                                <option value="all">Todos los estados</option>
+                                <option value="all">Estado</option>
                                 <option value="activo">Activos</option>
-                                <option value="por vencer">Por vencer</option>
+                                <option value="por vencer">Casi vencidos</option>
                                 <option value="vencido">Vencidos</option>
                             </select>
-                            <select style={selectStyle}><option>Todos los planes</option></select>
                         </div>
                     </div>
 
@@ -447,8 +442,8 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                 </div>
                 </>
             ) : activeTab === 'birthdays' ? (
-                <div style={{ marginBottom: '4px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
                         <select 
                             value={selectedMonth}
                             onChange={(e) => setSelectedMonth(e.target.value)}
@@ -458,8 +453,8 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                 <option key={i+1} value={i+1}>{m}</option>
                             ))}
                         </select>
-                        <span style={{ fontSize: '14px', fontWeight: 600, color: '#64748b' }}>
-                            {birthdays.length} cumpleaños en {monthNames[selectedMonth-1]}
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: '#64748b' }}>
+                            {birthdays.length} socios cumplen en {monthNames[selectedMonth-1]}
                         </span>
                     </div>
 
@@ -699,59 +694,63 @@ function StatCard({ title, count, icon, color, bgColor }) {
 }
 
 // Estilos
-const containerStyle = { padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '16px', overflowY: 'auto', flex: 1 };
+const containerStyle = { padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', flex: 1, background: '#f8fafc' };
 
-const statsGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' };
+const headerContainerStyle = {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+    background: '#fff', padding: '12px 16px', borderRadius: '16px', 
+    border: '1px solid #f1f5f9', boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
+};
+
+const statsCompactGridStyle = { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' };
 
 const statCardStyle = {
-    padding: '12px 16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    boxShadow: '0 2px 4px -1px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.05)'
+    padding: '10px 14px', borderRadius: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    border: '1px solid rgba(0,0,0,0.04)', transition: 'all 0.2s'
 };
 
-const filterBarStyle = { 
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px',
-    background: '#fff', padding: '16px', borderRadius: '16px', border: '1px solid #f1f5f9'
+const integratedFilterBarStyle = { 
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px',
+    background: '#fff', padding: '8px 12px', borderRadius: '14px', border: '1px solid #f1f5f9'
 };
 
-const searchWrapperStyle = { 
-    flex: 1, display: 'flex', alignItems: 'center', gap: '12px', background: '#f8fafc',
-    padding: '0 16px', borderRadius: '12px', height: '48px', border: '1px solid #e2e8f0'
+const compactSearchWrapperStyle = { 
+    flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: '#f1f5f9',
+    padding: '0 12px', borderRadius: '10px', height: '36px', border: '1px solid #e2e8f0'
 };
 
-const searchInputStyle = { background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '14px', color: '#1e293b' };
-
-const actionsRowStyle = { display: 'flex', gap: '12px' };
-
-const selectStyle = { 
-    height: '40px', padding: '0 12px', borderRadius: '10px', border: '1px solid #e2e8f0', 
-    fontSize: '13px', color: '#475569', background: '#fff', cursor: 'pointer'
+const compactSelectStyle = { 
+    height: '36px', padding: '0 10px', borderRadius: '10px', border: '1px solid #e2e8f0', 
+    fontSize: '12px', fontWeight: '600', color: '#475569', background: '#fff', cursor: 'pointer'
 };
+
+const searchInputStyle = { background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '13px', color: '#1e293b' };
 
 const tableContainerStyle = { background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', overflow: 'hidden' };
 
 const tableHeaderStyle = { 
-    display: 'flex', padding: '16px 24px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9',
-    fontSize: '12px', fontWeight: '600', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px'
+    display: 'flex', padding: '12px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9',
+    fontSize: '11px', fontWeight: '700', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px'
 };
 
 const tableRowStyle = { 
-    display: 'flex', alignItems: 'center', padding: '16px 24px', borderBottom: '1px solid #f1f5f9',
+    display: 'flex', alignItems: 'center', padding: '12px 20px', borderBottom: '1px solid #f1f5f9',
     transition: 'background 0.2s', cursor: 'default'
 };
 
 const avatarStyle = { 
-    width: '36px', height: '36px', borderRadius: '10px', background: '#eff6ff', 
-    color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold'
+    width: '32px', height: '32px', borderRadius: '8px', background: '#eff6ff', 
+    color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', fontSize: '13px'
 };
 
-const memberNameStyle = { fontSize: '14px', fontWeight: '600', color: '#1e293b' };
-const memberPhoneStyle = { fontSize: '12px', color: '#94a3b8' };
+const memberNameStyle = { fontSize: '13px', fontWeight: '700', color: '#1e293b' };
+const memberPhoneStyle = { fontSize: '11px', color: '#94a3b8' };
 
-const sedeNameStyle = { fontSize: '13px', fontWeight: '600', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' };
-const sedeAddrStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '2px' };
+const sedeNameStyle = { fontSize: '12px', fontWeight: '700', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' };
+const sedeAddrStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '1px' };
 
 const getStatusBadgeStyle = (status) => ({
-    padding: '4px 10px', borderRadius: '8px', fontSize: '11px', fontWeight: '700',
+    padding: '3px 8px', borderRadius: '6px', fontSize: '10px', fontWeight: '800',
     background: status === 'Activo' ? '#ecfdf5' : 
                 status === 'Por vencer' ? '#fff7ed' : 
                 status === 'Próximo' ? '#fefce8' : '#fef2f2',
@@ -761,26 +760,19 @@ const getStatusBadgeStyle = (status) => ({
 });
 
 const getExpStyle = (status) => ({
-    fontSize: '13px', fontWeight: '700',
+    fontSize: '12px', fontWeight: '700',
     color: status === 'Activo' ? '#10b981' : 
            status === 'Por vencer' ? '#f97316' : 
            status === 'Próximo' ? '#eab308' : '#ef4444'
 });
 
-const daysLeftStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '2px' };
+const daysLeftStyle = { fontSize: '10px', color: '#94a3b8', marginTop: '1px' };
 
 const actionIconStyle = { cursor: 'pointer', transition: 'color 0.2s' };
 
-const loadingStyle = { padding: '40px', textAlign: 'center', color: '#64748b', fontSize: '14px' };
+const loadingStyle = { padding: '30px', textAlign: 'center', color: '#64748b', fontSize: '13px' };
 
-const iconBoxStyle = {
-    width: '44px',
-    height: '44px',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-};
+const iconBoxStyle = { width: '44px', height: '44px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
 const modalOverlayStyle = { position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.4)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 };
 const renewalModalStyle = { background: '#fff', padding: '32px', borderRadius: '24px', width: '100%', maxWidth: '450px', boxShadow: '0 30px 60px rgba(0,0,0,0.12)', border: '1px solid #f1f5f9' };
@@ -790,48 +782,49 @@ const planOptionStyle = {
     width: '100%', padding: '16px', borderRadius: '14px', border: '1px solid #f1f5f9', background: '#fff',
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', transition: 'all 0.2s'
 };
+
 const tabsWrapperStyle = { 
-    display: 'flex', gap: '8px', marginBottom: '20px', background: '#f1f5f9', 
-    padding: '6px', borderRadius: '16px', width: 'fit-content' 
+    display: 'flex', gap: '4px', background: '#f1f5f9', 
+    padding: '4px', borderRadius: '12px'
 };
 
 const tabStyle = { 
-    display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', borderRadius: '12px', 
-    border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '14px', fontWeight: '700', 
+    display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 14px', borderRadius: '9px', 
+    border: 'none', background: 'transparent', cursor: 'pointer', fontSize: '12px', fontWeight: '700', 
     transition: 'all 0.2s', color: '#64748b'
 };
 
-const activeTabActiveStyle = { background: '#fff', color: '#1e293b', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' };
+const activeTabActiveStyle = { background: '#fff', color: '#0f172a', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' };
 
 const birthdayTabActiveStyle = { 
-    background: 'linear-gradient(135deg, #f43f5e 0%, #fb7185 100%)', 
-    color: '#fff', boxShadow: '0 10px 15px -3px rgba(244,63,94,0.3)' 
+    background: '#f43f5e', 
+    color: '#fff', boxShadow: '0 4px 6px -1px rgba(244,63,94,0.2)' 
 };
 
 const monthSelectStyle = {
-    padding: '10px 16px', borderRadius: '12px', border: '1px solid #e2e8f0', 
-    fontSize: '14px', fontWeight: '700', color: '#1e293b', background: '#fff',
-    cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+    padding: '8px 12px', borderRadius: '10px', border: '1px solid #e2e8f0', 
+    fontSize: '13px', fontWeight: '700', color: '#1e293b', background: '#fff',
+    cursor: 'pointer'
 };
 
 const birthdayGridStyle = {
-    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '16px'
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '12px'
 };
 
 const birthdayCardStyle = {
-    padding: '16px', borderRadius: '20px', border: '1px solid #f1f5f9',
-    display: 'flex', alignItems: 'center', gap: '16px', position: 'relative',
-    boxShadow: '0 4px 6px -1px rgba(0,0,0,0.02)', transition: 'transform 0.2s'
+    padding: '12px', borderRadius: '16px', border: '1px solid #f1f5f9',
+    display: 'flex', alignItems: 'center', gap: '12px', position: 'relative',
+    background: '#fff'
 };
 
 const calendarDateStyle = {
-    width: '56px', height: '64px', borderRadius: '14px',
+    width: '48px', height: '54px', borderRadius: '12px',
     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
     color: '#fff', flexShrink: 0
 };
 
 const birthdayActionBtnStyle = {
-    width: '40px', height: '40px', borderRadius: '12px', border: 'none',
+    width: '36px', height: '36px', borderRadius: '10px', border: 'none',
     display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
     transition: 'all 0.2s'
 };
