@@ -78,20 +78,27 @@ export default function PromotionsView({ members, onSendBulk, companyName, onNot
         setProgress({ current: 0, total: targetMembers.length });
 
         for (const member of targetMembers) {
+            if (!member.phone || member.phone.length < 5) {
+                console.warn(`[Promotions] Saltando socio ${member.name} por falta de teléfono`);
+                continue;
+            }
+
             let personalizedMsg = message
-                .replace('[Nombre]', member.name)
-                .replace('[Plan]', member.planName || 'tu plan')
-                .replace('[DiasRestantes]', member.daysRemaining || 'pocos');
+                .replace(/\[Nombre\]/g, member.name)
+                .replace(/\[Plan\]/g, member.planName || 'tu plan')
+                .replace(/\[DiasRestantes\]/g, member.daysRemaining || 'pocos');
             
-            onSendBulk(member.phone, personalizedMsg);
+            // Enviamos a la cola central: (phone, message, media_url)
+            onSendBulk(member.phone, personalizedMsg, null);
+            
             setProgress(prev => ({ ...prev, current: prev.current + 1 }));
-            await new Promise(r => setTimeout(r, 200)); // Pequeño delay para no saturar UI
+            await new Promise(r => setTimeout(r, 100)); // Delay mínimo para estabilidad
         }
 
         setTimeout(() => {
             setIsSending(false);
-            onNotify(`¡Éxito! Se han enviado ${targetMembers.length} mensajes a la cola.`, 'success');
-        }, 1000);
+            onNotify(`¡Éxito! Campaña enviada a la cola (${targetMembers.length} mensajes).`, 'success');
+        }, 800);
     };
 
     return (
