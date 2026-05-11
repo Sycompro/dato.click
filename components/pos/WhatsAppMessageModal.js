@@ -45,6 +45,7 @@ export default function WhatsAppMessageModal({ isOpen, onClose, member, onSend, 
         { id: 'logro', label: 'Logro/Felic.', icon: <Award size={16} />, color: '#10b981' },
     ];
 
+    const templates = {
         cumpleanos: [
             `¡Feliz cumpleaños *${member?.name}*! 🎂🥳 De parte de todo el equipo de *${companyName}*, te deseamos un día increíble lleno de salud y muchos entrenamientos. ¡A celebrar! 🎈🥤\n\nTu familia de *${companyName}*`,
             `¡Hoy es un día especial, *${member?.name}*! 🎉 El equipo de *${companyName}* te desea un muy feliz cumpleaños. ¡Gracias por ser parte de nuestra comunidad! 🏋️✨\n\nAtentamente, *${companyName}*`
