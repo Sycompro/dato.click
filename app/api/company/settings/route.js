@@ -3,7 +3,7 @@ import { getConnection } from '@/lib/db';
 import sql from 'mssql';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { getSQLiteDb } from '@/lib/sqlite';
+import { getWebSettings, saveWebSettings } from '@/lib/web-settings';
 
 export async function GET(request) {
     const session = await getServerSession(authOptions);
@@ -25,15 +25,8 @@ export async function GET(request) {
             console.warn("[Settings] Error SQL Server:", e.message);
         }
 
-        // 2. Obtener configuración personalizada desde SQLite (Interno Railway)
-        let webConfig = { custom_name: '', use_custom_name: 0 };
-        try {
-            const sqliteDb = await getSQLiteDb();
-            const config = await sqliteDb.get('SELECT * FROM web_config WHERE company_id = ?', [dbCode]);
-            if (config) webConfig = config;
-        } catch (e) {
-            console.error("[Settings] Error SQLite GET:", e);
-        }
+        // 2. Obtener configuración personalizada desde JSON (Interno Railway)
+        const webConfig = await getWebSettings(dbCode);
 
         // 3. Obtener datos de la Sede
         const sedeCode = session.user.sedeId || '01';
@@ -79,18 +72,14 @@ export async function POST(request) {
         const { customName, useCustomName } = await request.json();
         const dbCode = session?.user?.company?.replace('BdNava', '').padStart(2, '0') || '01';
 
-        const sqliteDb = await getSQLiteDb();
-        await sqliteDb.run(`
-            INSERT INTO web_config (company_id, custom_name, use_custom_name)
-            VALUES (?, ?, ?)
-            ON CONFLICT(company_id) DO UPDATE SET
-                custom_name = excluded.custom_name,
-                use_custom_name = excluded.use_custom_name
-        `, [dbCode, customName, useCustomName ? 1 : 0]);
+        await saveWebSettings(dbCode, {
+            custom_name: customName,
+            use_custom_name: useCustomName ? 1 : 0
+        });
 
         return NextResponse.json({ success: true });
     } catch (err) {
-        console.error('Error saving SQLite settings:', err);
+        console.error('Error saving web settings:', err);
         return NextResponse.json({ error: err.message }, { status: 500 });
     }
 }
