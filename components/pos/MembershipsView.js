@@ -17,7 +17,7 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     const [loading, setLoading] = useState(true);
     
     // Si companyName no viene de settings, intentamos usar el de la sesión
-    const finalCompanyName = companyName || session?.user?.name || session?.user?.company || 'nuestro gimnasio';
+    const finalCompanyName = companyName || 'Gym';
     const [members, setMembers] = useState([]);
     const [stats, setStats] = useState({ total: 0, active: 0, expiring: 0, expired: 0 });
     const [searchTerm, setSearchTerm] = useState('');
