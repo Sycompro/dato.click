@@ -26,7 +26,20 @@ export async function POST(request) {
             const day = now.getDate().toString().padStart(2, '0');
             const fechaStr = `${year}-${month}-${day}`;
             
-            const tcamOficial = 3.4980; // Forzamos 4 decimales
+            // Tipo de cambio dinámico desde la BD
+            let tcamOficial = 1;
+            try {
+                const tcaRes = await transaction.request()
+                    .query("SELECT TOP 1 tcvta FROM tbl01tca WHERE tcvta > 0 ORDER BY fecha DESC");
+                if (tcaRes.recordset.length > 0 && tcaRes.recordset[0].tcvta > 0) {
+                    tcamOficial = Number(tcaRes.recordset[0].tcvta.toFixed(4));
+                    console.log(`[API/Cash/Close] TC obtenido de tbl01tca: ${tcamOficial}`);
+                } else {
+                    console.warn("[API/Cash/Close] tbl01tca sin datos, usando TC = 1");
+                }
+            } catch (e) {
+                console.warn("[API/Cash/Close] Error leyendo tbl01tca:", e.message, "- usando TC = 1");
+            }
             const codusu = session?.user?.id?.toString().padStart(3, '0').slice(0, 3) || 'POS';
 
             // 1. Datos de la apertura
@@ -203,6 +216,11 @@ export async function POST(request) {
                                 VALUES (@fecha, @codcli, 'A', @cdocu, @ndocu, @crefe, @nrefe, @glosa, 0, @abono, 'S', @tcam, @cpago, ' ', @npago, 0, @nplan, NEWID(), GETDATE(), @compro)
                             `);
                     }
+
+                    // 5.1 Actualizar mst01ccc: saldo=0, flag='1' (como hace el ERP real)
+                    await transaction.request()
+                        .input('ndocu', sale.ndocu)
+                        .query(`UPDATE mst01ccc SET saldo = 0, flag = '1' WHERE ndocu = @ndocu`);
                 }
 
                 // --- 5.5 GENERACIÓN DEL ASIENTO CONTABLE (LÓGICA DE ESPEJO) ---
