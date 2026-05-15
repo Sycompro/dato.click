@@ -1,70 +1,111 @@
 'use client';
 import { Delete, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
 
 export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, value = '' }) {
+    const [pos, setPos] = useState({ top: 'calc(100% + 8px)', left: 0, bottom: 'auto', right: 'auto' });
+    const containerRef = useRef(null);
+
+    // Calcular posición inteligente (arriba/abajo, izquierda/derecha)
+    useEffect(() => {
+        if (isOpen && containerRef.current) {
+            const parent = containerRef.current.parentElement;
+            if (parent) {
+                const rect = parent.getBoundingClientRect();
+                const windowH = window.innerHeight;
+                const windowW = window.innerWidth;
+
+                let newPos = { top: 'calc(100% + 8px)', left: 0, bottom: 'auto', right: 'auto' };
+
+                // Si no hay espacio abajo, abrir hacia arriba
+                if (rect.bottom + 360 > windowH) {
+                    newPos.top = 'auto';
+                    newPos.bottom = 'calc(100% + 8px)';
+                }
+                
+                // Si no hay espacio a la derecha, alinear a la derecha del input
+                if (rect.left + 260 > windowW) {
+                    newPos.left = 'auto';
+                    newPos.right = 0;
+                }
+
+                setPos(newPos);
+            }
+        }
+    }, [isOpen]);
+
+    // Cerrar al hacer clic afuera
+    useEffect(() => {
+        const handleClickOutside = (e) => {
+            if (isOpen && containerRef.current) {
+                const parent = containerRef.current.parentElement;
+                if (!containerRef.current.contains(e.target) && parent && !parent.contains(e.target)) {
+                    onClose();
+                }
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [isOpen, onClose]);
+
     if (!isOpen) return null;
 
+    // Se cambió '00' por '.' para soportar campos monetarios
     const keys = [
         '1', '2', '3',
         '4', '5', '6',
         '7', '8', '9',
-        '00', '0', 'DEL'
+        '.', '0', 'DEL'
     ];
 
     return (
         <AnimatePresence>
-            <div 
+            <motion.div 
+                ref={containerRef}
+                initial={{ opacity: 0, scale: 0.95, y: pos.top !== 'auto' ? -10 : 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: pos.top !== 'auto' ? -10 : 10 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+                onClick={(e) => e.stopPropagation()}
                 style={{
-                    position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
-                    backgroundColor: 'rgba(15, 23, 42, 0.5)',
-                    backdropFilter: 'blur(8px)',
-                    zIndex: 9999,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                }} 
-                onClick={onClose}
+                    position: 'absolute',
+                    top: pos.top,
+                    bottom: pos.bottom,
+                    left: pos.left,
+                    right: pos.right,
+                    width: '250px', // Diseño no exagerado, tamaño perfecto
+                    background: '#f8fafc', // Fondo pastel gris muy claro
+                    borderRadius: '20px',
+                    boxShadow: '0 10px 40px -10px rgba(0,0,0,0.15), 0 0 0 1px rgba(0,0,0,0.05)',
+                    padding: '16px',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
+                    zIndex: 9999
+                }}
             >
-                <motion.div 
-                    initial={{ opacity: 0, scale: 0.85, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.85, y: 20 }}
-                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                        width: '280px',
-                        background: 'rgba(255, 255, 255, 0.85)',
-                        backdropFilter: 'blur(20px) saturate(180%)',
-                        borderRadius: '28px',
-                        boxShadow: '0 40px 80px -20px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.6)',
-                        border: '1px solid rgba(255, 255, 255, 0.8)',
-                        padding: '20px',
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '10px'
-                    }}
-                >
+                {/* Display Superior */}
                 <div style={{
                     gridColumn: '1 / -1',
-                    background: 'rgba(255, 255, 255, 0.5)',
-                    borderRadius: '16px',
+                    background: '#ffffff',
+                    borderRadius: '12px',
                     padding: '12px 16px',
                     marginBottom: '4px',
-                    border: '1px solid rgba(255, 255, 255, 0.8)',
                     boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                    border: '1px solid #e2e8f0',
                     textAlign: 'center',
-                    minHeight: '48px',
+                    minHeight: '44px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                 }}>
-                    <span style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '2px' }}>
-                        {value || <span style={{ color: '#94a3b8' }}>...</span>}
+                    <span style={{ fontSize: '20px', fontWeight: 800, color: '#334155', letterSpacing: '1px' }}>
+                        {value || <span style={{ color: '#cbd5e1' }}>...</span>}
                     </span>
                 </div>
 
+                {/* Botones */}
                 {keys.map((key) => {
                     const isDel = key === 'DEL';
                     return (
@@ -76,43 +117,35 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                                 else onKeyPress(key);
                             }}
                             style={{
-                                height: '54px',
-                                background: isDel ? 'linear-gradient(135deg, #ff4b4b 0%, #dc2626 100%)' : '#ffffff',
-                                border: 'none',
-                                borderRadius: '16px',
+                                height: '48px',
+                                background: isDel ? '#fee2e2' : '#ffffff', // Fondo pastel para DEL
+                                border: isDel ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                                borderRadius: '12px',
                                 fontSize: '20px',
                                 fontWeight: 800,
-                                color: isDel ? '#ffffff' : '#0f172a',
+                                color: isDel ? '#ef4444' : '#475569',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 cursor: 'pointer',
-                                boxShadow: isDel 
-                                    ? '0 6px 16px rgba(220, 38, 38, 0.3)' 
-                                    : '0 4px 10px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 -2px 0 rgba(0,0,0,0.02)',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
                                 transition: 'all 0.1s ease-out',
                                 userSelect: 'none'
                             }}
                             onMouseDown={e => {
-                                e.currentTarget.style.transform = 'scale(0.92) translateY(2px)';
-                                e.currentTarget.style.boxShadow = isDel 
-                                    ? '0 2px 8px rgba(220, 38, 38, 0.4)' 
-                                    : '0 1px 2px rgba(0,0,0,0.05), inset 0 2px 4px rgba(0,0,0,0.05)';
+                                e.currentTarget.style.transform = 'scale(0.92)';
+                                e.currentTarget.style.background = isDel ? '#fca5a5' : '#f1f5f9';
                             }}
                             onMouseUp={e => {
-                                e.currentTarget.style.transform = 'scale(1) translateY(0px)';
-                                e.currentTarget.style.boxShadow = isDel 
-                                    ? '0 6px 16px rgba(220, 38, 38, 0.3)' 
-                                    : '0 4px 10px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 -2px 0 rgba(0,0,0,0.02)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.background = isDel ? '#fee2e2' : '#ffffff';
                             }}
                             onMouseLeave={e => {
-                                e.currentTarget.style.transform = 'scale(1) translateY(0px)';
-                                e.currentTarget.style.boxShadow = isDel 
-                                    ? '0 6px 16px rgba(220, 38, 38, 0.3)' 
-                                    : '0 4px 10px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.02), inset 0 -2px 0 rgba(0,0,0,0.02)';
+                                e.currentTarget.style.transform = 'scale(1)';
+                                e.currentTarget.style.background = isDel ? '#fee2e2' : '#ffffff';
                             }}
                         >
-                            {isDel ? <Delete size={28} strokeWidth={2.5} /> : key}
+                            {isDel ? <Delete size={22} strokeWidth={2.5} /> : key}
                         </button>
                     );
                 })}
@@ -124,42 +157,39 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     }}
                     style={{
                         gridColumn: '1 / -1',
-                        height: '48px',
-                        background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '16px',
+                        height: '44px',
+                        background: '#e0e7ff', // Azul pastel muy suave y hermoso
+                        color: '#4f46e5',
+                        border: '1px solid #c7d2fe',
+                        borderRadius: '12px',
                         fontSize: '13px',
                         fontWeight: 800,
-                        letterSpacing: '0.5px',
                         cursor: 'pointer',
-                        marginTop: '8px',
+                        marginTop: '4px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: '8px',
-                        boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3), inset 0 -2px 0 rgba(0,0,0,0.1)',
+                        gap: '6px',
                         transition: 'all 0.1s ease-out',
                         userSelect: 'none'
                     }}
                     onMouseDown={e => {
-                        e.currentTarget.style.transform = 'scale(0.96) translateY(2px)';
-                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.4), inset 0 2px 4px rgba(0,0,0,0.2)';
+                        e.currentTarget.style.transform = 'scale(0.96)';
+                        e.currentTarget.style.background = '#c7d2fe';
                     }}
                     onMouseUp={e => {
-                        e.currentTarget.style.transform = 'scale(1) translateY(0px)';
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.3), inset 0 -2px 0 rgba(0,0,0,0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.background = '#e0e7ff';
                     }}
                     onMouseLeave={e => {
-                        e.currentTarget.style.transform = 'scale(1) translateY(0px)';
-                        e.currentTarget.style.boxShadow = '0 8px 20px rgba(59, 130, 246, 0.3), inset 0 -2px 0 rgba(0,0,0,0.1)';
+                        e.currentTarget.style.transform = 'scale(1)';
+                        e.currentTarget.style.background = '#e0e7ff';
                     }}
                 >
-                    <ChevronDown size={20} strokeWidth={3} />
-                    OCULTAR TECLADO
+                    <ChevronDown size={18} strokeWidth={3} />
+                    OK
                 </button>
-                </motion.div>
-            </div>
+            </motion.div>
         </AnimatePresence>
     );
 }
