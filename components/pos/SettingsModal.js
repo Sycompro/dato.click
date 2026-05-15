@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Dumbbell, Store, Check, Info } from 'lucide-react';
+import { X, Dumbbell, Store, Check, Info, UploadCloud } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
 export default function SettingsModal({ isOpen, onClose, db }) {
@@ -11,6 +11,8 @@ export default function SettingsModal({ isOpen, onClose, db }) {
     const [useCustomName, setUseCustomName] = useState(false);
     const [saved, setSaved] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [whatsappUrl, setWhatsappUrl] = useState('');
+    const [whatsappToken, setWhatsappToken] = useState('');
 
     const availableLogos = [
         { id: 'logocia01.jpg', name: 'Logo Empresa 01' },
@@ -31,6 +33,10 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                     setUseCustomName(data.company.useCustomName || false);
                     setPosLogo(data.company.logo || '');
                     setBusinessType(data.company.businessType || 'gym');
+                    if (data.whatsapp) {
+                        setWhatsappUrl(data.whatsapp.url || '');
+                        setWhatsappToken(data.whatsapp.token || '');
+                    }
                 }
             } catch (e) {
                 console.error("Error al cargar configuraciones:", e);
@@ -42,6 +48,22 @@ export default function SettingsModal({ isOpen, onClose, db }) {
         fetchSettings();
     }, [db]);
 
+    const handleLogoUpload = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        if (file.size > 500 * 1024) {
+            alert('El archivo es muy pesado. Por favor sube una imagen de menos de 500KB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            setPosLogo(reader.result);
+        };
+        reader.readAsDataURL(file);
+    };
+
     const handleSave = async () => {
         try {
             // Guardar todo en SQL Server a través del API
@@ -52,7 +74,9 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                     customName, 
                     useCustomName,
                     companyLogoUrl: posLogo,
-                    businessType
+                    businessType,
+                    whatsappUrl,
+                    whatsappToken
                 })
             });
 
@@ -196,24 +220,91 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                             <Info size={14} /> Selecciona el logo que aparecerá en el PDF impreso y digital.
                         </p>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                            {availableLogos.map(logo => (
-                                <div 
-                                    key={logo.id}
-                                    onClick={() => setPosLogo(logo.id)}
-                                    style={{
-                                        padding: '12px', border: '2px solid', borderRadius: '16px',
-                                        cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
-                                        borderColor: posLogo === logo.id ? '#3b82f6' : '#f1f5f9',
-                                        background: posLogo === logo.id ? '#eff6ff' : '#fff'
-                                    }}
-                                >
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+                            {/* Botón de Subir Personalizado */}
+                            <label style={{
+                                padding: '12px', border: '2px dashed #cbd5e1', borderRadius: '16px',
+                                cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                                background: '#f8fafc', display: 'flex', flexDirection: 'column',
+                                alignItems: 'center', justifyContent: 'center'
+                            }}>
+                                <input 
+                                    type="file" 
+                                    accept="image/png, image/jpeg" 
+                                    onChange={handleLogoUpload} 
+                                    style={{ display: 'none' }} 
+                                />
+                                <UploadCloud size={24} style={{ color: '#94a3b8', marginBottom: '8px' }} />
+                                <span style={{ fontSize: '10px', fontWeight: 800, color: '#64748b' }}>Subir Nuevo</span>
+                            </label>
+
+                            {/* Mostrar logo personalizado si está en base64 */}
+                            {posLogo && posLogo.startsWith('data:image') && (
+                                <div style={{
+                                    padding: '12px', border: '2px solid', borderRadius: '16px',
+                                    cursor: 'pointer', textAlign: 'center',
+                                    borderColor: '#3b82f6', background: '#eff6ff'
+                                }}>
                                     <div style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
-                                        <img src={`/logos/${logo.id}`} alt={logo.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                        <img src={posLogo} alt="Mi Logo" style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
                                     </div>
-                                    <span style={{ fontSize: '10px', fontWeight: 800, color: posLogo === logo.id ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
+                                    <span style={{ fontSize: '10px', fontWeight: 800, color: '#3b82f6' }}>Mi Logo (Actual)</span>
                                 </div>
-                            ))}
+                            )}
+
+                            {availableLogos.map(logo => {
+                                // No mostrar el predeterminado si hay un base64 activo y choca
+                                const isActive = posLogo === logo.id;
+                                return (
+                                    <div 
+                                        key={logo.id}
+                                        onClick={() => setPosLogo(logo.id)}
+                                        style={{
+                                            padding: '12px', border: '2px solid', borderRadius: '16px',
+                                            cursor: 'pointer', textAlign: 'center', transition: 'all 0.2s',
+                                            borderColor: isActive ? '#3b82f6' : '#f1f5f9',
+                                            background: isActive ? '#eff6ff' : '#fff'
+                                        }}
+                                    >
+                                        <div style={{ height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '8px' }}>
+                                            <img src={`/logos/${logo.id}`} alt={logo.name} style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }} />
+                                        </div>
+                                        <span style={{ fontSize: '10px', fontWeight: 800, color: isActive ? '#3b82f6' : '#64748b' }}>{logo.name}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* CONFIGURACIÓN WHATSAPP */}
+                        <label style={{ ...labelStyle, marginTop: '32px' }}>CONFIGURACIÓN WHATSAPP (EVOLUTION API)</label>
+                        <p style={infoTextStyle}>
+                            <Info size={14} /> Credenciales para el envío automático de comprobantes y alertas.
+                        </p>
+
+                        <div style={{ 
+                            background: '#f8fafc', padding: '20px', borderRadius: '20px', 
+                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px' 
+                        }}>
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', marginBottom: '6px', display: 'block' }}>URL DEL SERVIDOR</label>
+                                <input 
+                                    type="text"
+                                    placeholder="https://api.tu-servidor.com"
+                                    value={whatsappUrl}
+                                    onChange={(e) => setWhatsappUrl(e.target.value)}
+                                    style={modalInputStyle}
+                                />
+                            </div>
+                            <div>
+                                <label style={{ fontSize: '11px', fontWeight: 800, color: '#64748b', marginBottom: '6px', display: 'block' }}>API KEY / TOKEN</label>
+                                <input 
+                                    type="password"
+                                    placeholder="Tu token de seguridad..."
+                                    value={whatsappToken}
+                                    onChange={(e) => setWhatsappToken(e.target.value)}
+                                    style={modalInputStyle}
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -254,6 +345,11 @@ const closeButtonStyle = { background: '#f1f5f9', border: 'none', borderRadius: 
 const contentStyle = { padding: '32px' };
 const labelStyle = { display: 'block', fontSize: '11px', fontWeight: 900, color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '8px' };
 const infoTextStyle = { fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '24px' };
+const modalInputStyle = {
+    width: '100%', padding: '12px 16px', borderRadius: '12px',
+    border: '1px solid #e2e8f0', outline: 'none',
+    fontSize: '14px', fontWeight: 600, color: '#1e293b', background: '#fff'
+};
 
 const gridStyle = { display: 'flex', flexDirection: 'column', gap: '16px' };
 
