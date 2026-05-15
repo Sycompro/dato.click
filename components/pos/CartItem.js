@@ -3,7 +3,7 @@ import { Minus, Plus, X } from 'lucide-react';
 import { useState } from 'react';
 import NumericKeypad from './NumericKeypad';
 
-export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice }) {
+export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice, useScreenKeyboards }) {
     const [showQtyNumpad, setShowQtyNumpad] = useState(false);
     const [showPriceNumpad, setShowPriceNumpad] = useState(false);
 
@@ -65,7 +65,7 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice })
                         inputMode="none"
                         value={item.quantity}
                         onChange={(e) => onUpdateQty(item.id, (parseInt(e.target.value) || 1) - item.quantity)}
-                        onFocus={() => setShowQtyNumpad(true)}
+                        onFocus={() => useScreenKeyboards && setShowQtyNumpad(true)}
                         style={{ 
                             fontSize: '15px', fontWeight: 900, color: '#4f46e5', 
                             width: '32px', textAlign: 'center', border: 'none', 
@@ -101,7 +101,7 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice })
                             inputMode="none"
                             value={item.price}
                             onChange={(e) => onUpdatePrice(item.id, parseFloat(e.target.value) || 0)}
-                            onFocus={() => setShowPriceNumpad(true)}
+                            onFocus={() => useScreenKeyboards && setShowPriceNumpad(true)}
                             style={{ 
                                 fontSize: '11px', fontWeight: 700, color: '#64748b', 
                                 width: '60px', border: 'none', borderBottom: '1px dashed #cbd5e1',

@@ -4,7 +4,7 @@ import { X, User, Phone, ShieldCheck, Save, Info } from 'lucide-react';
 import CustomDatePicker from './CustomDatePicker';
 import NumericKeypad from './NumericKeypad';
 
-export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSave }) {
+export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSave, useScreenKeyboards }) {
     const [formData, setFormData] = useState({
         doc: initialDoc || '',
         name: '',
@@ -69,7 +69,7 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
                                 inputMode="none"
                                 value={formData.doc} 
                                 onChange={e => setFormData({...formData, doc: e.target.value})} 
-                                onFocus={() => setShowDocNumpad(true)}
+                                onFocus={() => useScreenKeyboards && setShowDocNumpad(true)}
                                 style={inputStyle} 
                                 placeholder="Nro de documento" 
                             />
@@ -104,7 +104,7 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
                                     inputMode="none"
                                     value={formData.phone} 
                                     onChange={e => setFormData({...formData, phone: e.target.value})} 
-                                    onFocus={() => setShowPhoneNumpad(true)}
+                                    onFocus={() => useScreenKeyboards && setShowPhoneNumpad(true)}
                                     style={inputStyle} 
                                     placeholder="999..." 
                                 />

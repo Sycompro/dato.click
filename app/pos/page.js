@@ -41,6 +41,7 @@ export default function POSPage() {
     const [loading, setLoading] = useState(true);
     const [isFinalizing, setIsFinalizing] = useState(false);
     const [activeTab, setActiveTab] = useState('pos'); // 'pos' o 'memberships'
+    const [useScreenKeyboards, setUseScreenKeyboards] = useState(true);
     
     // SISTEMA DE COLA DE WHATSAPP (ASÍNCRONO)
     const [waQueue, setWaQueue] = useState([]); // {id, phone, message, media_url, status, error}
@@ -57,6 +58,17 @@ export default function POSPage() {
             setPosLogo(`logocia${dbCode}.jpg`);
         }
     }, [companySettings, session]);
+
+    const loadKeyboardPreference = () => {
+        const savedKbd = localStorage.getItem('pos_use_screen_keyboards');
+        if (savedKbd !== null) {
+            setUseScreenKeyboards(savedKbd === 'true');
+        }
+    };
+
+    useEffect(() => {
+        loadKeyboardPreference();
+    }, []);
 
     const addToWaQueue = (phone, message, media_url) => {
         const newMsg = {
@@ -113,6 +125,10 @@ export default function POSPage() {
     const [openingAmount, setOpeningAmount] = useState('');
     const [showOpeningNumpad, setShowOpeningNumpad] = useState(false);
     
+    const openOpeningNumpad = () => {
+        if (useScreenKeyboards) setShowOpeningNumpad(true);
+    };
+
     // Handlers para el teclado numérico de Apertura de Caja
     const handleOpeningNumpadKeyPress = (key) => {
         if (key === '.') {
@@ -637,7 +653,7 @@ export default function POSPage() {
                             inputMode="none"
                             value={openingAmount}
                             onChange={e => setOpeningAmount(e.target.value)}
-                            onFocus={() => setShowOpeningNumpad(true)}
+                            onFocus={openOpeningNumpad}
                             style={{
                                 width: '100%',
                                 padding: '18px 20px 18px 45px',
@@ -944,7 +960,7 @@ export default function POSPage() {
                                             placeholder="Busca productos..." 
                                             value={searchTerm} 
                                             onChange={e => setSearchTerm(e.target.value)} 
-                                            onFocus={() => setShowSearchKeyboard(true)}
+                                            onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
                                             style={{ width: '100%', padding: '10px 12px 10px 40px', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none' }} 
                                         />
                                         <AlphanumericKeyboard 
@@ -1086,23 +1102,25 @@ export default function POSPage() {
                                             onUpdateQty={updateQuantity}
                                             onRemove={removeFromCart}
                                             onUpdatePrice={updatePrice}
+                                            useScreenKeyboards={useScreenKeyboards}
                                         />
                                     ))}
                                 </div>
-                                <PaymentSection 
-                                    total={total} 
-                                    availableMethods={availableMethods} 
-                                    payments={payments}
-                                    setPayments={setPayments}
-                                    onFinalize={handleFinalizeSale} 
-                                    loading={isFinalizing} 
-                                    cartEmpty={(cart || []).length === 0} 
-                                    onAlert={showAlert}
-                                    showMixed={showMixed}
-                                    setShowMixed={setShowMixed}
-                                    cashReceived={cashReceived}
-                                    setCashReceived={setCashReceived}
-                                />
+                                    <PaymentSection 
+                                        total={total} 
+                                        availableMethods={availableMethods} 
+                                        payments={payments}
+                                        setPayments={setPayments}
+                                        onFinalize={handleFinalizeSale} 
+                                        loading={isFinalizing} 
+                                        cartEmpty={(cart || []).length === 0} 
+                                        onAlert={showAlert}
+                                        showMixed={showMixed}
+                                        setShowMixed={setShowMixed}
+                                        cashReceived={cashReceived}
+                                        setCashReceived={setCashReceived}
+                                        useScreenKeyboards={useScreenKeyboards}
+                                    />
                             </div>
                         </motion.div>
                     )}
@@ -1113,10 +1131,11 @@ export default function POSPage() {
                             style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}
                         >
                             <MembershipsView 
-                    onRenew={handleRenew} 
-                    onQueueWhatsApp={addToWaQueue}
-                    companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
-                />
+                                onRenew={handleRenew} 
+                                onQueueWhatsApp={addToWaQueue}
+                                companyName={companySettings?.company?.commercialName || companySettings?.company?.name}
+                                useScreenKeyboards={useScreenKeyboards}
+                            />
                         </motion.div>
                     )}
 
@@ -1151,9 +1170,16 @@ export default function POSPage() {
                     businessType={companySettings?.company?.businessType}
                     membershipInfo={lastMembershipInfo}
                     onQueueWhatsApp={addToWaQueue}
+                    useScreenKeyboards={useScreenKeyboards}
                 />
             )}
-            <CustomerManualModal isOpen={showManualModal} onClose={() => setShowManualModal(false)} initialDoc={manualDoc} onCustomerCreated={(c) => { setCustomer(c); setCustomerSearch(c.ruc); setShowManualModal(false); }} />
+            <CustomerManualModal 
+                isOpen={showManualModal} 
+                onClose={() => setShowManualModal(false)} 
+                initialDoc={manualDoc} 
+                onCustomerCreated={(c) => { setCustomer(c); setCustomerSearch(c.ruc); setShowManualModal(false); }} 
+                useScreenKeyboards={useScreenKeyboards}
+            />
             <CartDetailsModal
                 isOpen={showCartModal}
                 onClose={() => setShowCartModal(false)}
@@ -1170,6 +1196,7 @@ export default function POSPage() {
                 onPrint={handlePrint}
                 company={session?.user?.company}
                 onQueueWhatsApp={addToWaQueue}
+                useScreenKeyboards={useScreenKeyboards}
             />
             <CloseCashModal
                 isOpen={showCloseModal}
@@ -1180,13 +1207,19 @@ export default function POSPage() {
                     setTimeout(() => signOut(), 5000); // Dar más tiempo a imprimir antes de salir
                 }}
             />
-            <SettingsModal isOpen={showSettingsModal} onClose={() => setShowSettingsModal(false)} db={session?.user?.company} />
+            <SettingsModal 
+                isOpen={showSettingsModal} 
+                onClose={() => setShowSettingsModal(false)} 
+                db={session?.user?.company} 
+                onSaved={loadKeyboardPreference}
+            />
             <CashExpenseModal
                 isOpen={activeTab === 'expenses'}
                 onClose={() => setActiveTab('pos')}
                 onSaved={() => setActiveTab('pos')}
                 idapecaj={idApeCaj}
                 codpto={session?.user?.company?.codpto || '01'}
+                useScreenKeyboards={useScreenKeyboards}
             />
 
             {/* COMPONENTE DE IMPRESIÓN PROFESIONAL (REPLICA EXACTA) */}

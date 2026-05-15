@@ -2,7 +2,7 @@ import { X, Banknote, Save, Loader2, User, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import NumericKeypad from './NumericKeypad';
 
-export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, codpto }) {
+export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, codpto, useScreenKeyboards }) {
     const [concepto, setConcepto] = useState('');
     const [monto, setMonto] = useState('');
     const [loading, setLoading] = useState(false);
@@ -199,7 +199,7 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
                                 placeholder="0.00" 
                                 value={monto}
                                 onChange={e => setMonto(e.target.value)}
-                                onFocus={() => setShowNumpad(true)}
+                                onFocus={() => useScreenKeyboards && setShowNumpad(true)}
                                 style={{ ...inputStyle, fontSize: '24px', fontWeight: 900, color: '#1e293b', textAlign: 'center' }}
                             />
                             <NumericKeypad 

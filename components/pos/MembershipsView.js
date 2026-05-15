@@ -11,8 +11,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import WhatsAppMessageModal from './WhatsAppMessageModal';
 import PromotionsView from './PromotionsView';
 import CustomDatePicker from './CustomDatePicker';
+import AlphanumericKeyboard from './AlphanumericKeyboard';
+import NumericKeypad from './NumericKeypad';
 
-export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName }) {
+export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName, useScreenKeyboards }) {
     const { data: session } = useSession();
     const [loading, setLoading] = useState(true);
     
@@ -28,6 +30,12 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
     const [planSearchTerm, setPlanSearchTerm] = useState('');
     const [isExtension, setIsExtension] = useState(false);
     const [expandedMember, setExpandedMember] = useState(null);
+    
+    // Estados para teclados en pantalla
+    const [showSearchKeyboard, setShowSearchKeyboard] = useState(false);
+    const [showPlanKeyboard, setShowPlanKeyboard] = useState(false);
+    const [showEditPhoneNumpad, setShowEditPhoneNumpad] = useState(false);
+    const [showEditNameKeyboard, setShowEditNameKeyboard] = useState(false);
     const [memberHistory, setMemberHistory] = useState({});
     const [loadingHistory, setLoadingHistory] = useState(false);
     
@@ -230,6 +238,14 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                 style={searchInputStyle}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
+                                onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
+                            />
+                            <AlphanumericKeyboard 
+                                isOpen={showSearchKeyboard}
+                                onClose={() => setShowSearchKeyboard(false)}
+                                onKeyPress={(key) => setSearchTerm(prev => prev + key)}
+                                onDelete={() => setSearchTerm(prev => prev.slice(0, -1))}
+                                value={searchTerm}
                             />
                         </div>
                         
@@ -693,6 +709,14 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                     style={{ ...searchInputStyle, fontSize: '13px' }}
                                     value={planSearchTerm}
                                     onChange={(e) => setPlanSearchTerm(e.target.value)}
+                                    onFocus={() => useScreenKeyboards && setShowPlanKeyboard(true)}
+                                />
+                                <AlphanumericKeyboard 
+                                    isOpen={showPlanKeyboard}
+                                    onClose={() => setShowPlanKeyboard(false)}
+                                    onKeyPress={(key) => setPlanSearchTerm(prev => prev + key)}
+                                    onDelete={() => setPlanSearchTerm(prev => prev.slice(0, -1))}
+                                    value={planSearchTerm}
                                 />
                             </div>
 
@@ -752,9 +776,18 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                     <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>Nombre Completo</label>
                                     <input 
                                         type="text"
+                                        inputMode="none"
                                         style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
                                         value={editingMember.nomcli}
                                         onChange={(e) => setEditingMember({...editingMember, nomcli: e.target.value})}
+                                        onFocus={() => useScreenKeyboards && setShowEditNameKeyboard(true)}
+                                    />
+                                    <AlphanumericKeyboard 
+                                        isOpen={showEditNameKeyboard}
+                                        onClose={() => setShowEditNameKeyboard(false)}
+                                        onKeyPress={(key) => setEditingMember(prev => ({ ...prev, nomcli: prev.nomcli + key }))}
+                                        onDelete={() => setEditingMember(prev => ({ ...prev, nomcli: prev.nomcli.slice(0, -1) }))}
+                                        value={editingMember.nomcli}
                                     />
                                 </div>
 
@@ -763,9 +796,18 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                         <label style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '6px', display: 'block' }}>WhatsApp / Teléfono</label>
                                         <input 
                                             type="text"
+                                            inputMode="none"
                                             style={{ ...compactSelectStyle, width: '100%', height: '42px', padding: '0 12px' }}
                                             value={editingMember.celcli}
                                             onChange={(e) => setEditingMember({...editingMember, celcli: e.target.value})}
+                                            onFocus={() => useScreenKeyboards && setShowEditPhoneNumpad(true)}
+                                        />
+                                        <NumericKeypad 
+                                            isOpen={showEditPhoneNumpad}
+                                            onClose={() => setShowEditPhoneNumpad(false)}
+                                            onKeyPress={(key) => { if(key !== '.') setEditingMember(prev => ({ ...prev, celcli: prev.celcli + key })) }}
+                                            onDelete={() => setEditingMember(prev => ({ ...prev, celcli: prev.celcli.slice(0, -1) }))}
+                                            value={editingMember.celcli}
                                         />
                                     </div>
                                     <div>

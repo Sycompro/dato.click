@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Dumbbell, Store, Check, Info, UploadCloud } from 'lucide-react';
 import { useState, useEffect } from 'react';
 
-export default function SettingsModal({ isOpen, onClose, db }) {
+export default function SettingsModal({ isOpen, onClose, db, onSaved }) {
     const [businessType, setBusinessType] = useState('gym'); // 'gym' o 'universal'
     const [posLogo, setPosLogo] = useState('');
     const [customName, setCustomName] = useState('');
@@ -13,6 +13,7 @@ export default function SettingsModal({ isOpen, onClose, db }) {
     const [loading, setLoading] = useState(true);
     const [whatsappUrl, setWhatsappUrl] = useState('');
     const [whatsappToken, setWhatsappToken] = useState('');
+    const [useScreenKeyboards, setUseScreenKeyboards] = useState(true);
 
     const availableLogos = [
         { id: 'logocia01.jpg', name: 'Logo Empresa 01' },
@@ -25,7 +26,6 @@ export default function SettingsModal({ isOpen, onClose, db }) {
             if (!db) return;
             setLoading(true);
             try {
-                // Cargar todo desde el servidor
                 const res = await fetch('/api/company/settings');
                 const data = await res.json();
                 if (data.company) {
@@ -44,6 +44,12 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                 setLoading(false);
             }
         };
+
+        // Cargar preferencia de teclado desde localStorage (per-device)
+        const savedKbd = localStorage.getItem('pos_use_screen_keyboards');
+        if (savedKbd !== null) {
+            setUseScreenKeyboards(savedKbd === 'true');
+        }
 
         fetchSettings();
     }, [db]);
@@ -80,12 +86,15 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                 })
             });
 
+            // Guardar preferencia de teclado localmente
+            localStorage.setItem('pos_use_screen_keyboards', useScreenKeyboards);
+
             setSaved(true);
             setTimeout(() => {
                 setSaved(false);
+                if (onSaved) onSaved();
                 onClose();
-                window.location.reload();
-            }, 1500);
+            }, 1000);
         } catch (e) {
             alert("Error al guardar la configuración");
         }
@@ -154,6 +163,40 @@ export default function SettingsModal({ isOpen, onClose, db }) {
                                     <p style={optionDescStyle}>Mensajes estándar de agradecimiento.</p>
                                 </div>
                                 {businessType === 'universal' && <div style={checkCircleStyle}><Check size={14} /></div>}
+                            </div>
+                        </div>
+
+                        {/* COMPORTAMIENTO DEL SISTEMA */}
+                        <label style={{ ...labelStyle, marginTop: '32px' }}>INTERFAZ Y TECLADO</label>
+                        <p style={infoTextStyle}>
+                            <Info size={14} /> Activa o desactiva los teclados de cristal en pantalla.
+                        </p>
+
+                        <div style={{ 
+                            background: '#f8fafc', padding: '20px', borderRadius: '20px', 
+                            border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '16px' 
+                        }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                <div style={{ flex: 1 }}>
+                                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 800, color: '#1e293b' }}>
+                                        Usar Teclados en Pantalla
+                                    </h4>
+                                    <p style={{ margin: '2px 0 0', fontSize: '11px', color: '#64748b' }}>
+                                        Ideal para tablets. Desactívalo si usas una PC con teclado físico.
+                                    </p>
+                                </div>
+                                <div 
+                                    onClick={() => setUseScreenKeyboards(!useScreenKeyboards)}
+                                    style={{
+                                        width: '48px', height: '24px', borderRadius: '24px',
+                                        background: useScreenKeyboards ? '#3b82f6' : '#cbd5e1',
+                                        padding: '4px', cursor: 'pointer', transition: 'all 0.3s ease',
+                                        display: 'flex', alignItems: 'center',
+                                        justifyContent: useScreenKeyboards ? 'flex-end' : 'flex-start'
+                                    }}
+                                >
+                                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
+                                </div>
                             </div>
                         </div>
 

@@ -6,7 +6,8 @@ import NumericKeypad from './NumericKeypad';
 export default function PaymentSection({ 
     total, availableMethods, payments, setPayments, onFinalize, 
     loading, cartEmpty, onAlert,
-    showMixed, setShowMixed, cashReceived, setCashReceived
+    showMixed, setShowMixed, cashReceived, setCashReceived,
+    useScreenKeyboards
 }) {
     const [tempAmount, setTempAmount] = useState('');
     const [selectedMethod, setSelectedMethod] = useState(null);
@@ -149,7 +150,7 @@ export default function PaymentSection({
                                 placeholder={`Monto (ej. ${total + 10})`}
                                 value={cashReceived}
                                 onChange={e => setCashReceived(e.target.value)}
-                                onFocus={() => setShowCashNumpad(true)}
+                                onFocus={() => useScreenKeyboards && setShowCashNumpad(true)}
                                 style={{ ...inputStyle, width: '100%', fontSize: '18px', fontWeight: 800, color: '#10b981' }}
                             />
                             <NumericKeypad 
@@ -181,7 +182,7 @@ export default function PaymentSection({
                                 placeholder={`Monto (S/ ${remaining.toFixed(2)})`}
                                 value={tempAmount}
                                 onChange={e => setTempAmount(e.target.value)}
-                                onFocus={() => setShowMixedNumpad(true)}
+                                onFocus={() => useScreenKeyboards && setShowMixedNumpad(true)}
                                 style={{ ...inputStyle, width: '100%' }}
                             />
                             <NumericKeypad 

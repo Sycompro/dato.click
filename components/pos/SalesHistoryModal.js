@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import NumericKeypad from './NumericKeypad';
 import AlphanumericKeyboard from './AlphanumericKeyboard';
 
-export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, company, onQueueWhatsApp }) {
+export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, company, onQueueWhatsApp, useScreenKeyboards }) {
     const [sales, setSales] = useState([]);
     const [sessionInfo, setSessionInfo] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -152,7 +152,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                         placeholder="Buscar por documento o cliente..." 
                         value={filter}
                         onChange={e => setFilter(e.target.value)}
-                        onFocus={() => setShowSearchKeyboard(true)}
+                        onFocus={() => useScreenKeyboards && setShowSearchKeyboard(true)}
                         style={searchInputStyle}
                     />
                     <AlphanumericKeyboard 
@@ -247,7 +247,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                                     inputMode="none"
                                     value={whatsappPhone}
                                     onChange={e => setWhatsappPhone(e.target.value)}
-                                    onFocus={() => setShowWaNumpad(true)}
+                                    onFocus={() => useScreenKeyboards && setShowWaNumpad(true)}
                                     placeholder="Número de celular..."
                                     style={miniInputStyle}
                                 />

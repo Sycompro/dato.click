@@ -2,7 +2,7 @@ import { CheckCircle2, Receipt, Printer, ArrowRight, MessageCircle, Loader2 } fr
 import { useState } from 'react';
 import NumericKeypad from './NumericKeypad';
 
-export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo, onQueueWhatsApp, company, businessType }) {
+export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo, onQueueWhatsApp, company, businessType, useScreenKeyboards }) {
     const [phone, setPhone] = useState(customerPhone || '');
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
@@ -111,7 +111,7 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
                             placeholder="999888777" 
                             value={phone}
                             onChange={e => setPhone(e.target.value)}
-                            onFocus={() => setShowNumpad(true)}
+                            onFocus={() => useScreenKeyboards && setShowNumpad(true)}
                             style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' }}
                         />
                         <NumericKeypad 
