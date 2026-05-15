@@ -182,15 +182,16 @@ export default function PaymentSection({
                 </div>
             </div>
 
-            {/* Botón Finalizar */}
             <button
                 disabled={cartEmpty || loading || (showMixed && Math.abs(remaining) > 0.01) || (!showMixed && payments.length === 0)}
                 onClick={handleFinalizeWithChange}
                 style={{
                     ...finalizeBtnStyle,
-                    background: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? '#e2e8f0' : '#3b82f6',
+                    background: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? '#e2e8f0' : 'linear-gradient(135deg, #4f46e5 0%, #a855f7 100%)',
                     color: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? '#94a3b8' : '#fff',
+                    boxShadow: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'none' : '0 8px 20px rgba(168, 85, 247, 0.3)',
                     cursor: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'not-allowed' : 'pointer',
+                    transform: (cartEmpty || loading || (showMixed && remaining > 0.01) || (!showMixed && payments.length === 0)) ? 'none' : 'translateY(-1px)',
                 }}
             >
                 {loading ? <Loader2 className="animate-spin" size={20} /> : <>Finalizar Venta <ArrowRight size={18} /></>}
@@ -205,16 +206,16 @@ const headerActionStyle = { display: 'flex', justifyContent: 'space-between', al
 const labelStyle = { fontSize: '9px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', margin: 0 };
 const modeBtnStyle = { background: 'none', border: 'none', fontSize: '10px', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' };
 const gridStyle = { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', marginBottom: '12px' };
-const methodBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 12px', borderRadius: '10px', border: '2px solid', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.15s ease' };
+const methodBtnStyle = { display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 12px', borderRadius: '12px', border: '2px solid', fontSize: '11px', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s ease', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' };
 const methodNameStyle = { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
-const mixedPanelStyle = { background: '#f8fafc', borderRadius: '14px', padding: '12px', marginBottom: '12px', border: '1px solid #e2e8f0' };
+const mixedPanelStyle = { background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)', borderRadius: '16px', padding: '12px', marginBottom: '12px', border: '1px solid #e2e8f0', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' };
 const inputGroupStyle = { display: 'flex', gap: '8px', marginBottom: '8px' };
 const inputStyle = { flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' };
 const addBtnStyle = { background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px', padding: '0 12px', cursor: 'pointer' };
 const paymentsListStyle = { display: 'flex', flexDirection: 'column', gap: '6px', borderTop: '1px solid #e2e8f0', paddingTop: '8px' };
 const paymentRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#1e293b' };
 const deleteBtnStyle = { background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '4px', cursor: 'pointer' };
-const totalsBoxStyle = { background: '#f8fafc', borderRadius: '12px', padding: '14px', marginBottom: '12px', border: '1px solid #f1f5f9' };
+const totalsBoxStyle = { background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)', borderRadius: '16px', padding: '14px', marginBottom: '12px', border: '1px solid #e2e8f0', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)' };
 const summaryRowStyle = { display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: '#64748b', marginBottom: '4px' };
 const totalRowStyle = { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', paddingTop: '8px', borderTop: '1px solid #e2e8f0' };
 const totalLabelStyle = { fontSize: '10px', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' };

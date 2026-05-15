@@ -22,13 +22,13 @@ export default function ProductCard({ product, onAdd }) {
                 overflow: 'hidden',
             }}
             onMouseEnter={e => {
-                e.currentTarget.style.borderColor = '#3b82f6';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(59,130,246,0.12)';
-                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.borderColor = '#8b5cf6';
+                e.currentTarget.style.boxShadow = '0 12px 30px rgba(139, 92, 246, 0.15)';
+                e.currentTarget.style.transform = 'translateY(-4px)';
             }}
             onMouseLeave={e => {
                 e.currentTarget.style.borderColor = '#e2e8f0';
-                e.currentTarget.style.boxShadow = 'none';
+                e.currentTarget.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)';
                 e.currentTarget.style.transform = 'translateY(0)';
             }}
         >
@@ -97,9 +97,10 @@ export default function ProductCard({ product, onAdd }) {
                     <div style={{
                         width: '32px',
                         height: '32px',
-                        background: '#eff6ff',
-                        color: '#3b82f6',
-                        borderRadius: '8px',
+                        background: 'linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%)',
+                        color: '#4f46e5',
+                        borderRadius: '10px',
+                        boxShadow: '0 2px 6px rgba(79, 70, 229, 0.15)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
