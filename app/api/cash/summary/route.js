@@ -16,20 +16,38 @@ export async function GET(request) {
         const session = await getServerSession(authOptions);
         const pool = await getConnection(session?.user?.company);
 
-        // 1. Datos de Apertura y Empresa
+        // 1. Datos de Apertura
         const headerRes = await pool.request()
             .input('id', sql.Int, idapecaj)
             .query(`
-                SELECT a.apesol, a.fecape, a.hora, a.codusu, a.codpto, a.nropla,
-                       (SELECT TOP 1 RazonSocial FROM Empresa) as nomemp,
-                       (SELECT TOP 1 Ruc FROM Empresa) as rucemp,
-                       (SELECT TOP 1 Direccion FROM Empresa) as diremp
+                SELECT a.apesol, a.fecape, a.hora, a.codusu, a.codpto, a.nropla
                 FROM dtl_restpos_apecaj a
                 WHERE a.idapecaj = @id
             `);
         
         const header = headerRes.recordset[0];
         if (!header) return NextResponse.json({ success: false, error: 'Sesión no encontrada' }, { status: 404 });
+
+        // 1.5 Info Legal de la Empresa desde BdNavaSys
+        let nomemp = 'EMPRESA', rucemp = '', diremp = '';
+        try {
+            const masterPool = await getConnection('BdNavaSys');
+            const dbCode = session?.user?.company?.replace('BdNava', '').padStart(2, '0') || '01';
+            const sysRes = await masterPool.request()
+                .input('code', sql.Char(3), dbCode)
+                .query("SELECT nomcia, ruccia, dircia FROM sysnavacia WHERE codcia LIKE @code + '%'");
+            if (sysRes.recordset.length > 0) {
+                nomemp = sysRes.recordset[0].nomcia?.trim() || 'EMPRESA';
+                rucemp = sysRes.recordset[0].ruccia?.trim() || '';
+                diremp = sysRes.recordset[0].dircia?.trim() || '';
+            }
+        } catch (e) {
+            console.warn("[CashSummary] Error consultando BdNavaSys:", e.message);
+        }
+
+        header.nomemp = nomemp;
+        header.rucemp = rucemp;
+        header.diremp = diremp;
 
         // 2. Desglose de Ventas por Condición (Contado vs Crédito)
         const condRes = await pool.request()
