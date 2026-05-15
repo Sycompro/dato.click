@@ -109,6 +109,20 @@ export default function POSPage() {
     const [modal, setModal] = useState({ show: false, title: '', message: '', type: 'info', value: '', showButtons: true, onConfirm: () => { } });
     const [isOpeningCash, setIsOpeningCash] = useState(false);
     const [openingAmount, setOpeningAmount] = useState('');
+    const [showOpeningNumpad, setShowOpeningNumpad] = useState(false);
+    
+    // Handlers para el teclado numérico de Apertura de Caja
+    const handleOpeningNumpadKeyPress = (key) => {
+        if (key === '.') {
+            if (!openingAmount.includes('.')) setOpeningAmount(prev => prev + '.');
+        } else {
+            setOpeningAmount(prev => prev + key);
+        }
+    };
+
+    const handleOpeningNumpadDelete = () => {
+        setOpeningAmount(prev => prev.slice(0, -1));
+    };
     const [docType, setDocType] = useState('65'); // Nota de Venta por defecto
     const [paymentMethod, setPaymentMethod] = useState(1);
     const [selectedTar, setSelectedTar] = useState('');
@@ -617,9 +631,11 @@ export default function POSPage() {
                             S/
                         </div>
                         <input
-                            type="number"
+                            type="text"
+                            inputMode="none"
                             value={openingAmount}
                             onChange={e => setOpeningAmount(e.target.value)}
+                            onFocus={() => setShowOpeningNumpad(true)}
                             style={{
                                 width: '100%',
                                 padding: '18px 20px 18px 45px',
@@ -633,8 +649,13 @@ export default function POSPage() {
                                 background: '#f8fafc'
                             }}
                             placeholder="0.00"
-                            onFocus={(e) => e.target.style.borderColor = '#3b82f6'}
-                            onBlur={(e) => e.target.style.borderColor = '#f1f5f9'}
+                        />
+                        <NumericKeypad 
+                            isOpen={showOpeningNumpad}
+                            onClose={() => setShowOpeningNumpad(false)}
+                            onKeyPress={handleOpeningNumpadKeyPress}
+                            onDelete={handleOpeningNumpadDelete}
+                            value={openingAmount}
                         />
                     </div>
 

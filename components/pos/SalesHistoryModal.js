@@ -161,7 +161,7 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                                     <th style={thStyle}>DOCUMENTO</th>
                                     <th style={thStyle}>CLIENTE / IDENTIFICACIÓN</th>
                                     <th style={thStyle}>VENDEDOR</th>
-                                    <th style={thStyle}>HORA</th>
+                                    <th style={thStyle}>FECHA / HORA</th>
                                     <th style={{ ...thStyle, textAlign: 'right' }}>TOTAL</th>
                                     <th style={{ ...thStyle, textAlign: 'center' }}>ACCIONES</th>
                                 </tr>
@@ -192,7 +192,10 @@ export default function SalesHistoryModal({ isOpen, onClose, idApeCaj, onPrint, 
                                             </div>
                                         </td>
                                         <td style={{ ...tdStyle, color: '#64748b' }}>
-                                            {new Date(sale.FecReg || sale.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                                <span style={{ fontSize: '10px', fontWeight: 600 }}>{sale.fecha_real || new Date(sale.fecha).toLocaleDateString()}</span>
+                                                <span style={{ fontSize: '11px', color: '#1e293b', fontWeight: 700 }}>{sale.hora_real}</span>
+                                            </div>
                                         </td>
                                         <td style={{ ...tdStyle, textAlign: 'right' }}>
                                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>

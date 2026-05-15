@@ -1,7 +1,46 @@
 'use client';
 import { Minus, Plus, X } from 'lucide-react';
+import { useState } from 'react';
+import NumericKeypad from './NumericKeypad';
 
 export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice }) {
+    const [showQtyNumpad, setShowQtyNumpad] = useState(false);
+    const [showPriceNumpad, setShowPriceNumpad] = useState(false);
+
+    const handleQtyKeyPress = (key) => {
+        if (key === '.') return; // No decimales para cantidad
+        const newQty = parseInt(item.quantity.toString() + key);
+        onUpdateQty(item.id, newQty - item.quantity);
+    };
+
+    const handleQtyDelete = () => {
+        const strQty = item.quantity.toString();
+        if (strQty.length <= 1) {
+            onUpdateQty(item.id, 1 - item.quantity);
+        } else {
+            const newQty = parseInt(strQty.slice(0, -1));
+            onUpdateQty(item.id, newQty - item.quantity);
+        }
+    };
+
+    const handlePriceKeyPress = (key) => {
+        let strPrice = item.price.toString();
+        if (key === '.') {
+            if (!strPrice.includes('.')) strPrice += '.';
+        } else {
+            strPrice += key;
+        }
+        onUpdatePrice(item.id, parseFloat(strPrice));
+    };
+
+    const handlePriceDelete = () => {
+        const strPrice = item.price.toString();
+        if (strPrice.length <= 1) {
+            onUpdatePrice(item.id, 0);
+        } else {
+            onUpdatePrice(item.id, parseFloat(strPrice.slice(0, -1)) || 0);
+        }
+    };
     return (
         <div style={{
             display: 'flex',
@@ -20,17 +59,27 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice })
                 <button onClick={() => onUpdateQty(item.id, 1)} style={qtyBtnStyle} title="Aumentar">
                     <Plus size={10} strokeWidth={3} />
                 </button>
-                <input 
-                    type="number"
-                    value={item.quantity}
-                    onChange={(e) => onUpdateQty(item.id, parseInt(e.target.value) - item.quantity)}
-                    onFocus={(e) => e.target.select()}
-                    style={{ 
-                        fontSize: '15px', fontWeight: 900, color: '#4f46e5', 
-                        width: '32px', textAlign: 'center', border: 'none', 
-                        background: 'transparent', outline: 'none' 
-                    }}
-                />
+                <div style={{ position: 'relative' }}>
+                    <input 
+                        type="text"
+                        inputMode="none"
+                        value={item.quantity}
+                        onChange={(e) => onUpdateQty(item.id, (parseInt(e.target.value) || 1) - item.quantity)}
+                        onFocus={() => setShowQtyNumpad(true)}
+                        style={{ 
+                            fontSize: '15px', fontWeight: 900, color: '#4f46e5', 
+                            width: '32px', textAlign: 'center', border: 'none', 
+                            background: 'transparent', outline: 'none' 
+                        }}
+                    />
+                    <NumericKeypad 
+                        isOpen={showQtyNumpad}
+                        onClose={() => setShowQtyNumpad(false)}
+                        onKeyPress={handleQtyKeyPress}
+                        onDelete={handleQtyDelete}
+                        value={item.quantity.toString()}
+                    />
+                </div>
                 <button onClick={() => onUpdateQty(item.id, -1)} style={qtyBtnStyle} title="Disminuir">
                     <Minus size={10} strokeWidth={3} />
                 </button>
@@ -46,18 +95,27 @@ export default function CartItem({ item, onUpdateQty, onRemove, onUpdatePrice })
                 </p>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>
                     <span style={{ fontSize: '11px', color: '#94a3b8' }}>S/</span>
-                    <input 
-                        type="number"
-                        step="0.01"
-                        value={item.price}
-                        onChange={(e) => onUpdatePrice(item.id, parseFloat(e.target.value))}
-                        onFocus={(e) => e.target.select()}
-                        style={{ 
-                            fontSize: '11px', fontWeight: 700, color: '#64748b', 
-                            width: '60px', border: 'none', borderBottom: '1px dashed #cbd5e1',
-                            background: 'transparent', outline: 'none', padding: '0 2px'
-                        }}
-                    />
+                    <div style={{ position: 'relative' }}>
+                        <input 
+                            type="text"
+                            inputMode="none"
+                            value={item.price}
+                            onChange={(e) => onUpdatePrice(item.id, parseFloat(e.target.value) || 0)}
+                            onFocus={() => setShowPriceNumpad(true)}
+                            style={{ 
+                                fontSize: '11px', fontWeight: 700, color: '#64748b', 
+                                width: '60px', border: 'none', borderBottom: '1px dashed #cbd5e1',
+                                background: 'transparent', outline: 'none', padding: '0 2px'
+                            }}
+                        />
+                        <NumericKeypad 
+                            isOpen={showPriceNumpad}
+                            onClose={() => setShowPriceNumpad(false)}
+                            onKeyPress={handlePriceKeyPress}
+                            onDelete={handlePriceDelete}
+                            value={item.price.toString()}
+                        />
+                    </div>
                 </div>
             </div>
 

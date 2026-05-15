@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { X, User, Phone, ShieldCheck, Save, Info } from 'lucide-react';
 import CustomDatePicker from './CustomDatePicker';
+import NumericKeypad from './NumericKeypad';
 
 export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSave }) {
     const [formData, setFormData] = useState({
@@ -11,6 +12,29 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
         phone: '',
         birthdate: ''
     });
+
+    const [showDocNumpad, setShowDocNumpad] = useState(false);
+    const [showPhoneNumpad, setShowPhoneNumpad] = useState(false);
+
+    const handleDocKeyPress = (key) => {
+        if (key === '.') return;
+        setFormData(prev => ({ ...prev, doc: prev.doc + key }));
+    };
+
+    const handleDocDelete = () => {
+        setFormData(prev => ({ ...prev, doc: prev.doc.slice(0, -1) }));
+    };
+
+    const handlePhoneKeyPress = (key) => {
+        if (key === '.') return;
+        if (formData.phone.length < 9) {
+            setFormData(prev => ({ ...prev, phone: prev.phone + key }));
+        }
+    };
+
+    const handlePhoneDelete = () => {
+        setFormData(prev => ({ ...prev, phone: prev.phone.slice(0, -1) }));
+    };
 
     if (!isOpen) return null;
 
@@ -40,7 +64,22 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
                         <label style={labelStyle}>DNI o CE</label>
                         <div style={inputWrapperStyle}>
                             <ShieldCheck size={16} style={inputIconStyle} />
-                            <input type="text" value={formData.doc} onChange={e => setFormData({...formData, doc: e.target.value})} style={inputStyle} placeholder="Nro de documento" />
+                            <input 
+                                type="text" 
+                                inputMode="none"
+                                value={formData.doc} 
+                                onChange={e => setFormData({...formData, doc: e.target.value})} 
+                                onFocus={() => setShowDocNumpad(true)}
+                                style={inputStyle} 
+                                placeholder="Nro de documento" 
+                            />
+                            <NumericKeypad 
+                                isOpen={showDocNumpad}
+                                onClose={() => setShowDocNumpad(false)}
+                                onKeyPress={handleDocKeyPress}
+                                onDelete={handleDocDelete}
+                                value={formData.doc}
+                            />
                         </div>
                     </div>
 
@@ -60,7 +99,22 @@ export default function CustomerManualModal({ isOpen, onClose, initialDoc, onSav
                             <label style={labelStyle}>Celular (Opcional)</label>
                             <div style={inputWrapperStyle}>
                                 <Phone size={16} style={inputIconStyle} />
-                                <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={inputStyle} placeholder="999..." />
+                                <input 
+                                    type="text" 
+                                    inputMode="none"
+                                    value={formData.phone} 
+                                    onChange={e => setFormData({...formData, phone: e.target.value})} 
+                                    onFocus={() => setShowPhoneNumpad(true)}
+                                    style={inputStyle} 
+                                    placeholder="999..." 
+                                />
+                                <NumericKeypad 
+                                    isOpen={showPhoneNumpad}
+                                    onClose={() => setShowPhoneNumpad(false)}
+                                    onKeyPress={handlePhoneKeyPress}
+                                    onDelete={handlePhoneDelete}
+                                    value={formData.phone}
+                                />
                             </div>
                         </div>
                         <div style={fieldGroupStyle}>

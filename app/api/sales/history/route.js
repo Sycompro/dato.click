@@ -33,6 +33,8 @@ export async function GET(request) {
                     f.ndocu, f.cdocu, f.nomcli, f.ruccli, 
                     CAST(f.totn AS FLOAT) as tota, 
                     f.fecha, f.FecReg, f.flag, f.selpago, f.codven, f.codfdp,
+                    CONVERT(VARCHAR(8), f.FecReg, 108) as hora_real,
+                    CONVERT(VARCHAR(10), f.FecReg, 103) as fecha_real,
                     c.fecfinpres,
                     COALESCE(NULLIF(f.observ, ''), NULLIF(c.celcli, ''), NULLIF(c.telcli, ''), '') as phone
                 FROM mst01fac f
@@ -44,7 +46,7 @@ export async function GET(request) {
         return NextResponse.json({
             sales: salesRes.recordset.map(s => ({
                 ...s,
-                status: s.flag === '9' ? 'ANULADO' : 'ACTIVO',
+                status: (s.flag === '9' || s.flag === '*') ? 'ANULADO' : 'ACTIVO',
                 paymentType: s.selpago === 1 ? 'EFECTIVO' : 'TARJETA'
             })),
             sessionInfo

@@ -268,13 +268,15 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                             <span style={{ flex: 1 }}>Acciones</span>
                         </div>
 
-                        {loading ? (
-                            <div style={loadingStyle}>Cargando membresías...</div>
-                        ) : (members || []).length === 0 ? (
-                            <div style={loadingStyle}>No se encontraron membresías.</div>
-                        ) : (
-                            (members || []).map((member, idx) => (
-                                <div key={member.id}>
+                        {/* Contenedor Scrollable para el Cuerpo de la Tabla */}
+                        <div style={{ flex: 1, overflowY: 'auto', minHeight: 0 }} className="no-scrollbar">
+                            {loading ? (
+                                <div style={loadingStyle}>Cargando membresías...</div>
+                            ) : (members || []).length === 0 ? (
+                                <div style={loadingStyle}>No se encontraron membresías.</div>
+                            ) : (
+                                (members || []).map((member, idx) => (
+                                    <div key={member.id}>
                                     <motion.div 
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -476,9 +478,10 @@ export default function MembershipsView({ onRenew, onQueueWhatsApp, companyName 
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
-                                </div>
-                            ))
-                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
                 </>
             ) : activeTab === 'birthdays' ? (
@@ -872,7 +875,17 @@ function StatCard({ title, count, icon, color, bgColor }) {
 }
 
 // Estilos
-const containerStyle = { padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', flex: 1, background: '#f8fafc', height: '100%', maxHeight: '100%' };
+const containerStyle = { 
+    padding: '12px 20px', 
+    display: 'flex', 
+    flexDirection: 'column', 
+    gap: '12px', 
+    overflow: 'hidden', // Cambiado de auto a hidden para que solo la tabla haga scroll
+    flex: 1, 
+    minHeight: 0, 
+    background: '#f8fafc', 
+    height: '100%' 
+};
 
 const headerContainerStyle = {
     display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
@@ -892,6 +905,12 @@ const integratedFilterBarStyle = {
     background: '#fff', padding: '8px 12px', borderRadius: '14px', border: '1px solid #f1f5f9'
 };
 
+const searchWrapperStyle = { 
+    display: 'flex', alignItems: 'center', gap: '10px', background: '#f1f5f9',
+    padding: '0 12px', borderRadius: '12px', border: '1px solid #e2e8f0',
+    transition: 'all 0.2s'
+};
+
 const compactSearchWrapperStyle = { 
     flex: 1, display: 'flex', alignItems: 'center', gap: '10px', background: '#f1f5f9',
     padding: '0 12px', borderRadius: '10px', height: '36px', border: '1px solid #e2e8f0'
@@ -904,7 +923,16 @@ const compactSelectStyle = {
 
 const searchInputStyle = { background: 'transparent', border: 'none', outline: 'none', width: '100%', fontSize: '13px', color: '#1e293b' };
 
-const tableContainerStyle = { background: '#fff', borderRadius: '16px', border: '1px solid #f1f5f9', overflow: 'hidden' };
+const tableContainerStyle = { 
+    background: '#fff', 
+    borderRadius: '16px', 
+    border: '1px solid #f1f5f9', 
+    overflow: 'hidden', // Cambiado a hidden para contener el scroll interno
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    minHeight: 0
+};
 
 const tableHeaderStyle = { 
     display: 'flex', padding: '12px 20px', background: '#f8fafc', borderBottom: '1px solid #f1f5f9',

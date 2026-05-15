@@ -1,6 +1,7 @@
 'use client';
 import { Banknote, CreditCard, Smartphone, ArrowRight, Plus, Trash2, Split, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import NumericKeypad from './NumericKeypad';
 
 export default function PaymentSection({ 
     total, availableMethods, payments, setPayments, onFinalize, 
@@ -9,6 +10,8 @@ export default function PaymentSection({
 }) {
     const [tempAmount, setTempAmount] = useState('');
     const [selectedMethod, setSelectedMethod] = useState(null);
+    const [showCashNumpad, setShowCashNumpad] = useState(false);
+    const [showMixedNumpad, setShowMixedNumpad] = useState(false);
 
     const subtotal = total / 1.18;
     const igv = total - subtotal;
@@ -50,6 +53,32 @@ export default function PaymentSection({
             amount: total
         }]);
         if (m.id !== 'EF') setCashReceived('');
+    };
+
+    // Handlers para el teclado numérico de Efectivo Recibido
+    const handleCashNumpadKeyPress = (key) => {
+        if (key === '.') {
+            if (!cashReceived.includes('.')) setCashReceived(prev => prev + '.');
+        } else {
+            setCashReceived(prev => prev + key);
+        }
+    };
+
+    const handleCashNumpadDelete = () => {
+        setCashReceived(prev => prev.slice(0, -1));
+    };
+
+    // Handlers para el teclado numérico de Pago Mixto
+    const handleMixedNumpadKeyPress = (key) => {
+        if (key === '.') {
+            if (!tempAmount.includes('.')) setTempAmount(prev => prev + '.');
+        } else {
+            setTempAmount(prev => prev + key);
+        }
+    };
+
+    const handleMixedNumpadDelete = () => {
+        setTempAmount(prev => prev.slice(0, -1));
     };
 
     const handleFinalizeWithChange = () => {
@@ -113,13 +142,24 @@ export default function PaymentSection({
                     <p style={{ ...labelStyle, marginBottom: '8px', color: '#64748b' }}>Efectivo Recibido</p>
                     <div style={inputGroupStyle}>
                         <Banknote size={18} style={{ color: '#10b981', alignSelf: 'center' }} />
-                        <input
-                            type="number"
-                            placeholder={`Monto (ej. ${total + 10})`}
-                            value={cashReceived}
-                            onChange={e => setCashReceived(e.target.value)}
-                            style={{ ...inputStyle, fontSize: '18px', fontWeight: 800, color: '#10b981' }}
-                        />
+                        <div style={{ flex: 1, position: 'relative' }}>
+                            <input
+                                type="text"
+                                inputMode="none"
+                                placeholder={`Monto (ej. ${total + 10})`}
+                                value={cashReceived}
+                                onChange={e => setCashReceived(e.target.value)}
+                                onFocus={() => setShowCashNumpad(true)}
+                                style={{ ...inputStyle, width: '100%', fontSize: '18px', fontWeight: 800, color: '#10b981' }}
+                            />
+                            <NumericKeypad 
+                                isOpen={showCashNumpad}
+                                onClose={() => setShowCashNumpad(false)}
+                                onKeyPress={handleCashNumpadKeyPress}
+                                onDelete={handleCashNumpadDelete}
+                                value={cashReceived}
+                            />
+                        </div>
                     </div>
                     {change > 0 && (
                         <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px', padding: '8px', background: '#ecfdf5', borderRadius: '8px' }}>
@@ -134,13 +174,24 @@ export default function PaymentSection({
             {showMixed && (
                 <div style={mixedPanelStyle}>
                     <div style={inputGroupStyle}>
-                        <input
-                            type="number"
-                            placeholder={`Monto (S/ ${remaining.toFixed(2)})`}
-                            value={tempAmount}
-                            onChange={e => setTempAmount(e.target.value)}
-                            style={inputStyle}
-                        />
+                        <div style={{ flex: 1, position: 'relative' }}>
+                            <input
+                                type="text"
+                                inputMode="none"
+                                placeholder={`Monto (S/ ${remaining.toFixed(2)})`}
+                                value={tempAmount}
+                                onChange={e => setTempAmount(e.target.value)}
+                                onFocus={() => setShowMixedNumpad(true)}
+                                style={{ ...inputStyle, width: '100%' }}
+                            />
+                            <NumericKeypad 
+                                isOpen={showMixedNumpad}
+                                onClose={() => setShowMixedNumpad(false)}
+                                onKeyPress={handleMixedNumpadKeyPress}
+                                onDelete={handleMixedNumpadDelete}
+                                value={tempAmount}
+                            />
+                        </div>
                         <button onClick={addPayment} style={addBtnStyle} disabled={!selectedMethod}>
                             <Plus size={18} />
                         </button>

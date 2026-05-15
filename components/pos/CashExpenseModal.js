@@ -1,10 +1,12 @@
 import { X, Banknote, Save, Loader2, User, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import NumericKeypad from './NumericKeypad';
 
 export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, codpto }) {
     const [concepto, setConcepto] = useState('');
     const [monto, setMonto] = useState('');
     const [loading, setLoading] = useState(false);
+    const [showNumpad, setShowNumpad] = useState(false);
     
     const [reasons, setReasons] = useState([]);
     const [selectedReasonId, setSelectedReasonId] = useState('');
@@ -57,6 +59,18 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
             setEmployees([]);
         }
     }, [empSearch, isAdelanto]);
+
+    const handleNumpadKeyPress = (key) => {
+        if (key === '.') {
+            if (!monto.includes('.')) setMonto(prev => prev + '.');
+        } else {
+            setMonto(prev => prev + key);
+        }
+    };
+
+    const handleNumpadDelete = () => {
+        setMonto(prev => prev.slice(0, -1));
+    };
 
     if (!isOpen) return null;
 
@@ -178,13 +192,24 @@ export default function CashExpenseModal({ isOpen, onClose, onSaved, idapecaj, c
 
                     <div style={inputGroupStyle}>
                         <label style={labelStyle}>Monto (S/)</label>
-                        <input 
-                            type="number" 
-                            placeholder="0.00" 
-                            value={monto}
-                            onChange={e => setMonto(e.target.value)}
-                            style={{ ...inputStyle, fontSize: '24px', fontWeight: 900, color: '#1e293b', textAlign: 'center' }}
-                        />
+                        <div style={{ position: 'relative' }}>
+                            <input 
+                                type="text" 
+                                inputMode="none"
+                                placeholder="0.00" 
+                                value={monto}
+                                onChange={e => setMonto(e.target.value)}
+                                onFocus={() => setShowNumpad(true)}
+                                style={{ ...inputStyle, fontSize: '24px', fontWeight: 900, color: '#1e293b', textAlign: 'center' }}
+                            />
+                            <NumericKeypad 
+                                isOpen={showNumpad}
+                                onClose={() => setShowNumpad(false)}
+                                onKeyPress={handleNumpadKeyPress}
+                                onDelete={handleNumpadDelete}
+                                value={monto}
+                            />
+                        </div>
                     </div>
 
                     <button 

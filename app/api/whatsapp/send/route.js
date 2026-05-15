@@ -13,8 +13,8 @@ export async function POST(request) {
     let API_KEY = '';
     let ENDPOINT = '';
 
+    const dbName = session?.user?.company;
     try {
-        const dbName = session?.user?.company;
         if (!dbName) {
             return NextResponse.json({ success: false, error: 'Sesión de empresa no identificada' }, { status: 401 });
         }

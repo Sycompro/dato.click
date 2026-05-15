@@ -17,13 +17,14 @@ export async function GET() {
         // 1. Obtener Tipo de Cambio del día (Venta)
         let exchangeRate = 1;
         try {
-            const today = new Date().toISOString().split('T')[0];
             const tcaRes = await pool.request()
-                .input('today', today)
-                .query("SELECT TOP 1 tcvta FROM tbl01tca WHERE fecha <= @today ORDER BY fecha DESC");
+                .query("SELECT TOP 1 tcvta FROM tbl01tca WHERE tcvta > 0 ORDER BY fecha DESC");
             
-            if (tcaRes.recordset.length > 0) {
+            if (tcaRes.recordset.length > 0 && tcaRes.recordset[0].tcvta > 0) {
                 exchangeRate = tcaRes.recordset[0].tcvta;
+                console.log(`[API/Cash/Active] TC obtenido de tbl01tca: ${exchangeRate}`);
+            } else {
+                console.warn("[API/Cash/Active] tbl01tca vacía o tcvta = 0, usando default: 1");
             }
         } catch (e) {
             console.error("[API/Cash/Active] Error consultando tbl01tca:", e.message);

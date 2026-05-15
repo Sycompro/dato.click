@@ -71,6 +71,10 @@ export async function GET(request) {
             pointOfSale: {
                 name: sede.nompto?.trim() || 'SUCURSAL PRINCIPAL',
                 code: sedeCode
+            },
+            whatsapp: {
+                url: webConfig.whatsapp_url || '',
+                token: webConfig.whatsapp_token || ''
             }
         });
     } catch (err) {
@@ -84,7 +88,7 @@ export async function POST(request) {
     if (!session) return NextResponse.json({ error: 'No autorizado' }, { status: 401 });
 
     try {
-        const { customName, companyLogoUrl } = await request.json();
+        const { customName, companyLogoUrl, businessType, whatsappUrl, whatsappToken } = await request.json();
         const dbName = session?.user?.company;
         const pool = await getConnection(dbName);
 
@@ -106,17 +110,20 @@ export async function POST(request) {
             END
         `);
 
-        const { customName, companyLogoUrl, businessType } = await request.json();
 
         await pool.request()
             .input('name', sql.VarChar(255), customName || '')
             .input('logo', sql.VarChar(sql.MAX), companyLogoUrl || '')
             .input('type', sql.VarChar(50), businessType || 'gym')
+            .input('waUrl', sql.VarChar(255), whatsappUrl || '')
+            .input('waToken', sql.VarChar(255), whatsappToken || '')
             .query(`
                 UPDATE tbl_pos_settings 
                 SET company_logo_url = CASE WHEN @logo <> '' THEN @logo ELSE company_logo_url END,
                     custom_name = @name,
-                    business_type = @type
+                    business_type = @type,
+                    whatsapp_url = @waUrl,
+                    whatsapp_token = @waToken
                 WHERE id=1
             `);
 

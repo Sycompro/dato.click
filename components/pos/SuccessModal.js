@@ -1,10 +1,12 @@
 import { CheckCircle2, Receipt, Printer, ArrowRight, MessageCircle, Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import NumericKeypad from './NumericKeypad';
 
 export default function SuccessModal({ orderNumber, onReset, onPrint, customerPhone, total, docType, membershipInfo, onQueueWhatsApp, company, businessType }) {
     const [phone, setPhone] = useState(customerPhone || '');
     const [sending, setSending] = useState(false);
     const [sent, setSent] = useState(false);
+    const [showNumpad, setShowNumpad] = useState(false);
 
     const handleSendWhatsApp = async () => {
         if (!phone || phone.length < 9) return alert('Ingrese un número válido');
@@ -53,6 +55,15 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
         }
     };
 
+    const handleNumpadKeyPress = (key) => {
+        if (key === '.') return; // Celular no lleva puntos
+        if (phone.length < 9) setPhone(prev => prev + key);
+    };
+
+    const handleNumpadDelete = () => {
+        setPhone(prev => prev.slice(0, -1));
+    };
+
     return (
         <div style={{
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
@@ -93,13 +104,22 @@ export default function SuccessModal({ orderNumber, onReset, onPrint, customerPh
                 {/* WhatsApp Section */}
                 <div style={{ marginBottom: '20px', textAlign: 'left' }}>
                     <p style={{ fontSize: '11px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Enviar a WhatsApp</p>
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div style={{ display: 'flex', gap: '8px', position: 'relative' }}>
                         <input 
                             type="text" 
+                            inputMode="none"
                             placeholder="999888777" 
                             value={phone}
                             onChange={e => setPhone(e.target.value)}
+                            onFocus={() => setShowNumpad(true)}
                             style={{ flex: 1, padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' }}
+                        />
+                        <NumericKeypad 
+                            isOpen={showNumpad}
+                            onClose={() => setShowNumpad(false)}
+                            onKeyPress={handleNumpadKeyPress}
+                            onDelete={handleNumpadDelete}
+                            value={phone}
                         />
                         <button 
                             onClick={handleSendWhatsApp}
