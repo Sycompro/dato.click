@@ -14,7 +14,8 @@ class NavaSaleService {
       const {
         docType, codcli, nomcli, ruccli, items, payments,
         idApeCaj, warehouse, codven, exchangeRate,
-        cashReceived, changeGiven, pointOfSale
+        cashReceived, changeGiven, pointOfSale,
+        customStartDate
       } = data;
 
       // 1. Configuración de tiempo y pagos
@@ -119,23 +120,26 @@ class NavaSaleService {
       
       const formattedCompro = `${docType}/${nextNdocu.substring(nextNdocu.length - 6)}`;
 
-      const reqMst = new sql.Request(transaction);
-      await reqMst
-        .input('cdocu', docType.substring(0, 2))
-        .input('ndocu', nextNdocu.substring(0, 12))
-        .input('fecha', sql.Date, fechaStr)
-        .input('fven', sql.Date, fechaStr)
-        .input('codcli', sql.Char(6), finalCodCli)
-        .input('nomcli', sql.Char(60), (nomcli && nomcli !== 'CLIENTE VARIOS' ? nomcli : 'VENTA CONTADO').substring(0, 60))
-        .input('ruccli', sql.Char(11), (ruccli || '').substring(0, 11))
-        .input('totn', sql.Decimal(18, 2), breakdown.total)
-        .input('toti', sql.Decimal(18, 2), breakdown.tax)
-        .input('tota', sql.Decimal(18, 2), breakdown.subtotal)
-        .input('mone', 'S')
-        .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
-        .input('Codpto', erpPto)
-        .input('CodAlm', await getWarehouseForSede(transaction, erpPto))
-        .input('idapecaj', sql.Int, idApeCaj)
+        // Resolve the exact warehouse for this point of sale to ensure consistency across all tables
+        const resolvedWarehouse = await getWarehouseForSede(transaction, erpPto);
+
+        const reqMst = new sql.Request(transaction);
+        await reqMst
+          .input('cdocu', docType.substring(0, 2))
+          .input('ndocu', nextNdocu.substring(0, 12))
+          .input('fecha', sql.Date, fechaStr)
+          .input('fven', sql.Date, fechaStr)
+          .input('codcli', sql.Char(6), finalCodCli)
+          .input('nomcli', sql.Char(60), (nomcli && nomcli !== 'CLIENTE VARIOS' ? nomcli : 'VENTA CONTADO').substring(0, 60))
+          .input('ruccli', sql.Char(11), (ruccli || '').substring(0, 11))
+          .input('totn', sql.Decimal(18, 2), breakdown.total)
+          .input('toti', sql.Decimal(18, 2), breakdown.tax)
+          .input('tota', sql.Decimal(18, 2), breakdown.subtotal)
+          .input('mone', 'S')
+          .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
+          .input('Codpto', erpPto)
+          .input('CodAlm', resolvedWarehouse)
+          .input('idapecaj', sql.Int, idApeCaj)
         .input('selpago', sql.Int, globalSelPago)
         .input('codfdp', isMixed ? '' : globalCodFdp)
         .input('codtar', sql.Char(2), isMixed ? '' : globalCodTar.substring(0, 2))
@@ -179,7 +183,7 @@ class NavaSaleService {
           .input('preu', sql.Decimal(18, 2), item.itemNetUnitPrice)
           .input('tota', sql.Decimal(18, 2), item.itemSubtotal)
           .input('totn', sql.Decimal(18, 2), item.itemTotal)
-          .input('Codalm', (warehouse || '01').substring(0, 2))
+          .input('Codalm', resolvedWarehouse)
           .input('flag', '0')
           .input('tcam', sql.Decimal(18, 4), navaExchangeRate)
           .input('mone', 'S')
@@ -194,7 +198,7 @@ class NavaSaleService {
 
         // 6.1 Inserción en KARDEX (kdd01XX)
         if (item.userCode !== 'DS00') {
-          const kddTable = `kdd01${(warehouse || '01').substring(0, 2).padStart(2, '0')}`;
+          const kddTable = `kdd01${resolvedWarehouse.padStart(2, '0').slice(-2)}`;
           const reqKdd = new sql.Request(transaction);
           await reqKdd
             .input('fecha', sql.Date, fechaStr)
@@ -217,15 +221,15 @@ class NavaSaleService {
             .input('cfac', docType.substring(0, 2))
             .input('nfac', nextNdocu.substring(0, 12))
             .input('codven', (codven || 'V0001').substring(0, 5))
-            .input('codpto', (pointOfSale || '01').substring(0, 2))
+            .input('codpto', erpPto)
             .query(`
               INSERT INTO ${kddTable} (fecha, cdocu, ndocu, codn, nomb, refe, tmov, codi, cant, preu, dsct, tota, tcam, mone, cost, codglo, nomglo, aigv, cfac, nfac, codven, CodPto, CodTur, uvta, pigv, pcfle, pcemb)
               VALUES (@fecha, @cdocu, @ndocu, @codn, @nomb, @refe, @tmov, @codi, @cant, @preu, 0, @tota, @tcam, @mone, @cost, @codglo, @nomglo, @aigv, @cfac, @nfac, @codven, @codpto, '01', 1, 0, 0, 0)
             `);
 
           // 6.2 DESCUENTO MANUAL DE STOCK
-          const targetWarehouse = warehouse || erpPto || '01';
-          const prdTable = `prd01${targetWarehouse.toString().padStart(2, '0').slice(-2)}`;
+          const targetWarehouse = resolvedWarehouse;
+          const prdTable = `prd01${targetWarehouse.padStart(2, '0').slice(-2)}`;
           
           const reqUpdateStock = new sql.Request(transaction);
           await reqUpdateStock
@@ -352,7 +356,8 @@ class NavaSaleService {
           const newEndDate = new Date(startDate);
           newEndDate.setDate(startDate.getDate() + totalMembershipDays);
           
-          const feciniStr = today.toISOString().split('T')[0];
+          // La fecha de inicio que se muestra en la ficha debe ser la fecha elegida o calculada
+          const feciniStr = startDate.toISOString().split('T')[0];
           const fecfinStr = newEndDate.toISOString().split('T')[0];
 
           await reqCli
