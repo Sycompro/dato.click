@@ -39,34 +39,33 @@ export default function AlphanumericKeyboard({ isOpen, onClose, onKeyPress, onDe
             <div 
                 style={{
                     position: 'fixed',
-                    top: 0, left: 0, right: 0, bottom: 0,
+                    top: 0, left: 0, right: 0, bottom: 20, // Un pequeño margen del fondo
                     zIndex: 9999,
                     display: 'flex',
-                    alignItems: 'center',
+                    alignItems: 'flex-end', // Al fondo
                     justifyContent: 'center',
                     pointerEvents: 'none'
                 }}
             >
                 <motion.div 
                     ref={containerRef}
-                    initial={{ opacity: 0, scale: 0.9, y: 30, filter: 'blur(10px)' }}
-                    animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
-                    exit={{ opacity: 0, scale: 0.9, y: 30, filter: 'blur(10px)' }}
+                    initial={{ opacity: 0, y: 100, filter: 'blur(10px)' }} // Aparece desde abajo
+                    animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                    exit={{ opacity: 0, y: 100, filter: 'blur(10px)' }}
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     onClick={(e) => e.stopPropagation()}
                     style={{
                         pointerEvents: 'auto',
-                        width: 'auto',
-                        maxWidth: '90vw',
-                        background: 'rgba(15, 23, 42, 0.65)', // Azul cristalizado profundo
-                        backdropFilter: 'blur(40px) saturate(200%)',
-                        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-                        borderRadius: '32px',
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.1)',
-                        padding: '20px',
+                        width: 'min(95vw, 850px)', // Más estirado horizontalmente
+                        background: 'rgba(15, 23, 42, 0.7)', 
+                        backdropFilter: 'blur(50px) saturate(210%)',
+                        WebkitBackdropFilter: 'blur(50px) saturate(210%)',
+                        borderRadius: '24px',
+                        boxShadow: '0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.12)',
+                        padding: '12px 20px', // Menos padding vertical
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '12px'
+                        gap: '6px' // Gap reducido para menor altura
                     }}
                 >
                     {/* Display */}
@@ -143,13 +142,14 @@ export default function AlphanumericKeyboard({ isOpen, onClose, onKeyPress, onDe
 }
 
 const keyStyle = {
-    width: '38px',
-    height: '44px',
+    flex: 1, // Para que se estiren proporcionalmente
+    minWidth: '30px',
+    height: '38px', // Altura reducida
     background: 'rgba(255, 255, 255, 0.15)',
     border: 'none',
-    borderRadius: '12px',
-    fontSize: '16px',
-    fontWeight: 500,
+    borderRadius: '10px',
+    fontSize: '14px', // Un poco más pequeño para caber mejor
+    fontWeight: 600,
     color: '#ffffff',
     display: 'flex',
     alignItems: 'center',
