@@ -9,7 +9,6 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
     useEffect(() => {
         const handleClickOutside = (e) => {
             if (isOpen && containerRef.current && !containerRef.current.contains(e.target)) {
-                // Prevenimos que se cierre si el click fue dentro del elemento padre que disparó el evento (opcional, pero útil)
                 const parent = containerRef.current.parentElement;
                 if (!parent || (parent && !parent.contains(e.target))) {
                     onClose();
@@ -39,7 +38,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    pointerEvents: 'none' // Para que no bloquee clics fuera del teclado
+                    pointerEvents: 'none'
                 }}
             >
                 <motion.div 
@@ -50,22 +49,22 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     onClick={(e) => e.stopPropagation()}
                     style={{
-                        pointerEvents: 'auto', // Reactivar eventos solo en el teclado
-                        width: '260px', // Tamaño reducido
-                        // ESTILO APPLE VISION PRO (Crystal/Glass)
-                        background: 'rgba(255, 255, 255, 0.08)', // Cristal puro ultra-transparente
-                        backdropFilter: 'blur(50px) saturate(200%)',
-                        WebkitBackdropFilter: 'blur(50px) saturate(200%)',
+                        pointerEvents: 'auto',
+                        width: '260px',
+                        // ESTILO NEGRO CRISTALIZADO (Deep Spatial UI)
+                        background: 'rgba(20, 20, 20, 0.45)', // Negro cristalizado
+                        backdropFilter: 'blur(40px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(40px) saturate(180%)',
                         borderRadius: '32px',
-                        boxShadow: '0 30px 60px rgba(0,0,0,0.3), inset 0 2px 6px rgba(255,255,255,0.4), inset 0 -1px 2px rgba(255,255,255,0.1)',
-                        border: '1px solid rgba(255, 255, 255, 0.25)',
-                        padding: '16px', // Menor padding
+                        boxShadow: '0 30px 60px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        padding: '16px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '16px' // Menor separación
+                        gap: '16px'
                     }}
                 >
-                    {/* Display Superior (Texto Flotante) */}
+                    {/* Display Superior */}
                     <div style={{
                         width: '100%',
                         textAlign: 'center',
@@ -78,12 +77,12 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     }}>
                         <span style={{ 
                             fontSize: '18px',
-                            fontWeight: 800, 
-                            color: '#1e293b', 
+                            fontWeight: 400, 
+                            color: '#ffffff', 
                             letterSpacing: '2px',
-                            textShadow: '0 1px 2px rgba(255,255,255,0.8)'
+                            textShadow: '0 2px 10px rgba(0,0,0,0.3)'
                         }}>
-                            {value || <span style={{ color: 'rgba(30,41,59,0.3)' }}>...</span>}
+                            {value || <span style={{ color: 'rgba(255,255,255,0.4)' }}>...</span>}
                         </span>
                     </div>
 
@@ -91,7 +90,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                     <div style={{
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '10px' // Separación reducida
+                        gap: '10px'
                     }}>
                         {keys.map((key) => {
                             const isDel = key === 'DEL';
@@ -105,32 +104,32 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                                     }}
                                     style={{
                                         height: '46px',
-                                        // Botones cristalizados claros
-                                        background: isDel ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.4)',
-                                        border: '1px solid rgba(255, 255, 255, 0.5)',
+                                        // Botones negros cristalizados
+                                        background: isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)',
+                                        border: 'none',
                                         borderRadius: '50px',
                                         fontSize: '18px',
-                                        fontWeight: 600,
-                                        color: isDel ? '#ef4444' : '#1e293b',
+                                        fontWeight: 400,
+                                        color: '#ffffff',
                                         display: 'flex',
                                         alignItems: 'center',
                                         justifyContent: 'center',
                                         cursor: 'pointer',
-                                        boxShadow: '0 2px 4px rgba(0,0,0,0.02), inset 0 2px 4px rgba(255,255,255,0.5)',
+                                        boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.2)',
                                         transition: 'all 0.15s ease-out',
                                         userSelect: 'none'
                                     }}
                                     onMouseDown={e => {
                                         e.currentTarget.style.transform = 'scale(0.85)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.8)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.6)' : 'rgba(255, 255, 255, 0.4)';
                                     }}
                                     onMouseUp={e => {
                                         e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.4)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
                                     }}
                                     onMouseLeave={e => {
                                         e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.background = isDel ? 'rgba(239, 68, 68, 0.15)' : 'rgba(255, 255, 255, 0.4)';
+                                        e.currentTarget.style.background = isDel ? 'rgba(255, 60, 60, 0.3)' : 'rgba(255, 255, 255, 0.15)';
                                     }}
                                 >
                                     {isDel ? <Delete size={20} strokeWidth={2} /> : key}
@@ -139,7 +138,7 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         })}
                     </div>
                     
-                    {/* Barra de acción inferior / Espaciador (Estilo Apple Space/Enter) */}
+                    {/* Botón Aceptar */}
                     <button
                         onClick={(e) => {
                             e.preventDefault();
@@ -148,32 +147,32 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         style={{
                             width: '100%',
                             height: '42px',
-                            background: 'rgba(59, 130, 246, 0.15)',
-                            color: '#3b82f6',
-                            border: '1px solid rgba(59, 130, 246, 0.3)',
+                            background: 'rgba(255, 255, 255, 0.25)',
+                            color: '#ffffff',
+                            border: 'none',
                             borderRadius: '50px',
                             fontSize: '14px',
-                            fontWeight: 700,
+                            fontWeight: 500,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '6px',
-                            boxShadow: '0 2px 4px rgba(59,130,246,0.1)',
+                            boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.3)',
                             transition: 'all 0.15s ease-out',
                             userSelect: 'none'
                         }}
                         onMouseDown={e => {
                             e.currentTarget.style.transform = 'scale(0.95)';
-                            e.currentTarget.style.background = 'rgba(59, 130, 246, 0.25)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.5)';
                         }}
                         onMouseUp={e => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                         }}
                         onMouseLeave={e => {
                             e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.background = 'rgba(59, 130, 246, 0.15)';
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                         }}
                     >
                         <Check size={16} strokeWidth={2.5} />
