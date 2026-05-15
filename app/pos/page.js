@@ -30,6 +30,7 @@ import WhatsappView from '@/components/pos/WhatsappView';
 import SettingsModal from '@/components/pos/SettingsModal';
 import CashExpenseModal from '@/components/pos/CashExpenseModal';
 import NumericKeypad from '@/components/pos/NumericKeypad';
+import CustomSelect from '@/components/pos/CustomSelect';
 
 export default function POSPage() {
     const { data: session } = useSession();
@@ -914,14 +915,13 @@ export default function POSPage() {
                                         <Search size={18} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                                         <input type="text" placeholder="Busca productos..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ width: '100%', padding: '10px 12px 10px 40px', borderRadius: '10px', border: '1px solid #e2e8f0', outline: 'none' }} />
                                     </div>
-                                    <div style={{ minWidth: '180px' }}>
-                                        <select
+                                    <div style={{ minWidth: '240px' }}>
+                                        <CustomSelect
                                             value={selectedSalesperson}
-                                            onChange={e => setSelectedSalesperson(e.target.value)}
-                                            style={{ width: '100%', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', fontWeight: 800, outline: 'none', color: '#1e293b' }}
-                                        >
-                                            {salespeople.map(v => <option key={v.id} value={v.id}>VENDEDOR: {v.name.trim()}</option>)}
-                                        </select>
+                                            onChange={(val) => setSelectedSalesperson(val)}
+                                            options={salespeople.map(v => ({ value: v.id, label: `VENDEDOR: ${v.name.trim()}` }))}
+                                            placeholder="Seleccionar Vendedor"
+                                        />
                                     </div>
                                     <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '3px', gap: '4px' }}>
                                         {['03', '01', '65'].map(t => (
