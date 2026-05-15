@@ -838,6 +838,7 @@ export default function POSPage() {
                                             onClose={() => setShowNumpad(false)} 
                                             onKeyPress={handleNumpadKeyPress} 
                                             onDelete={handleNumpadDelete} 
+                                            value={customerSearch}
                                         />
                                     </div>
                                     <button
@@ -879,6 +880,7 @@ export default function POSPage() {
                                                     onClose={() => setShowPhoneNumpad(false)} 
                                                     onKeyPress={handlePhoneNumpadKeyPress} 
                                                     onDelete={handlePhoneNumpadDelete} 
+                                                    value={customer.phone || ''}
                                                 />
                                             </div>
                                         </div>

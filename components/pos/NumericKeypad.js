@@ -2,7 +2,7 @@
 import { Delete, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete }) {
+export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, value = '' }) {
     if (!isOpen) return null;
 
     const keys = [
@@ -34,18 +34,37 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete })
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     onClick={(e) => e.stopPropagation()}
                     style={{
-                        width: '360px',
+                        width: '280px',
                         background: 'rgba(255, 255, 255, 0.85)',
                         backdropFilter: 'blur(20px) saturate(180%)',
-                        borderRadius: '32px',
+                        borderRadius: '28px',
                         boxShadow: '0 40px 80px -20px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.6)',
                         border: '1px solid rgba(255, 255, 255, 0.8)',
-                        padding: '28px',
+                        padding: '20px',
                         display: 'grid',
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '14px'
+                        gap: '10px'
                     }}
                 >
+                <div style={{
+                    gridColumn: '1 / -1',
+                    background: 'rgba(255, 255, 255, 0.5)',
+                    borderRadius: '16px',
+                    padding: '12px 16px',
+                    marginBottom: '4px',
+                    border: '1px solid rgba(255, 255, 255, 0.8)',
+                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
+                    textAlign: 'center',
+                    minHeight: '48px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}>
+                    <span style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', letterSpacing: '2px' }}>
+                        {value || <span style={{ color: '#94a3b8' }}>...</span>}
+                    </span>
+                </div>
+
                 {keys.map((key) => {
                     const isDel = key === 'DEL';
                     return (
@@ -57,11 +76,11 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete })
                                 else onKeyPress(key);
                             }}
                             style={{
-                                height: '64px',
+                                height: '54px',
                                 background: isDel ? 'linear-gradient(135deg, #ff4b4b 0%, #dc2626 100%)' : '#ffffff',
                                 border: 'none',
-                                borderRadius: '18px',
-                                fontSize: '24px',
+                                borderRadius: '16px',
+                                fontSize: '20px',
                                 fontWeight: 800,
                                 color: isDel ? '#ffffff' : '#0f172a',
                                 display: 'flex',
@@ -105,12 +124,12 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete })
                     }}
                     style={{
                         gridColumn: '1 / -1',
-                        height: '56px',
+                        height: '48px',
                         background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
                         color: '#ffffff',
                         border: 'none',
-                        borderRadius: '18px',
-                        fontSize: '14px',
+                        borderRadius: '16px',
+                        fontSize: '13px',
                         fontWeight: 800,
                         letterSpacing: '0.5px',
                         cursor: 'pointer',
