@@ -52,12 +52,19 @@ export default function NumericKeypad({ isOpen, onClose, onKeyPress, onDelete, v
                         pointerEvents: 'auto',
                         width: '260px',
                         // ESTILO AZULADO CRISTALIZADO (Slate Glass UI)
-                        background: 'rgba(15, 23, 42, 0.55)', // Azul profundo cristalizado
-                        backdropFilter: 'blur(40px) saturate(200%)',
-                        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                        background: 'rgba(15, 23, 42, 0.75)', // Un poco más sólido para contraste
+                        backdropFilter: 'blur(30px) saturate(180%)',
+                        WebkitBackdropFilter: 'blur(30px) saturate(180%)',
                         borderRadius: '32px',
-                        boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2), 0 20px 60px rgba(0, 0, 0, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.08)',
-                        border: 'none', // Quitamos el borde sólido para usar el inset shadow más fino
+                        // SOMBRA LIMPIA Y PROFUNDA (Multi-capa)
+                        boxShadow: `
+                            0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                            0 10px 15px -3px rgba(0, 0, 0, 0.1),
+                            0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                            0 30px 50px -10px rgba(0, 0, 0, 0.3),
+                            inset 0 0 0 1px rgba(255, 255, 255, 0.1)
+                        `,
+                        border: 'none',
                         padding: '16px',
                         display: 'flex',
                         flexDirection: 'column',

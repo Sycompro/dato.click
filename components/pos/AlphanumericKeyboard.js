@@ -57,11 +57,15 @@ export default function AlphanumericKeyboard({ isOpen, onClose, onKeyPress, onDe
                     style={{
                         pointerEvents: 'auto',
                         width: 'min(95vw, 850px)', // Más estirado horizontalmente
-                        background: 'rgba(15, 23, 42, 0.7)', 
-                        backdropFilter: 'blur(50px) saturate(210%)',
-                        WebkitBackdropFilter: 'blur(50px) saturate(210%)',
-                        borderRadius: '24px',
-                        boxShadow: '0 20px 50px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.12)',
+                        background: 'rgba(15, 23, 42, 0.85)', 
+                        backdropFilter: 'blur(40px) saturate(200%)',
+                        WebkitBackdropFilter: 'blur(40px) saturate(200%)',
+                        borderRadius: '28px',
+                        boxShadow: `
+                            0 10px 15px -3px rgba(0, 0, 0, 0.2),
+                            0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                            inset 0 0 0 1px rgba(255, 255, 255, 0.1)
+                        `,
                         padding: '12px 20px', // Menos padding vertical
                         display: 'flex',
                         flexDirection: 'column',
