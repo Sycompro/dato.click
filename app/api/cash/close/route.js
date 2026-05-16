@@ -132,22 +132,27 @@ export async function POST(request) {
                     comproPrefix = lastCompro.split('/')[0] + '/';
                 }
 
+                // Lógica robusta: Buscar el último comprobante tanto en cobranzas como en contabilidad
+                const cgmTable = `cgm0102${year}`;
                 const lastComproMonthRes = await transaction.request()
                     .input('prefix', comproPrefix + '%')
+                    .input('mes', month)
                     .query(`
-                        SELECT MAX(compro) as lastCompro 
-                        FROM mst01cob 
-                        WHERE compro LIKE @prefix 
-                        AND MONTH(fecreg) = MONTH(GETDATE()) 
-                        AND YEAR(fecreg) = YEAR(GETDATE())
+                        SELECT MAX(lastNum) as lastNum FROM (
+                            SELECT MAX(CAST(SUBSTRING(compro, CHARINDEX('/', compro) + 1, 6) AS INT)) as lastNum 
+                            FROM mst01cob 
+                            WHERE compro LIKE @prefix 
+                            AND YEAR(fecreg) = YEAR(GETDATE())
+                            UNION ALL
+                            SELECT MAX(CAST(compro AS INT)) as lastNum 
+                            FROM ${cgmTable} 
+                            WHERE origen = '05' AND mes_as = @mes
+                        ) t
                     `);
                 
                 let nextVoucherNumber = 1;
-                if (lastComproMonthRes.recordset[0].lastCompro) {
-                    const parts = lastComproMonthRes.recordset[0].lastCompro.split('/');
-                    if (parts.length === 2) {
-                        nextVoucherNumber = parseInt(parts[1]) + 1;
-                    }
+                if (lastComproMonthRes.recordset[0].lastNum) {
+                    nextVoucherNumber = lastComproMonthRes.recordset[0].lastNum + 1;
                 }
                 const comproOficial = comproPrefix + nextVoucherNumber.toString().padStart(6, '0');
 
@@ -231,7 +236,6 @@ export async function POST(request) {
                 }
 
                 // --- 5.5 GENERACIÓN DEL ASIENTO CONTABLE (LÓGICA DE ESPEJO) ---
-                const cgmTable = `cgm0102${year}`;
                 const comproNum = comproOficial.split('/')[1] || comproOficial;
                 let idComproSeq = 1;
 
