@@ -12,9 +12,10 @@ const DB_COLORS = {
     'BdNava03': '#7c5cfc',
     'BdNava04': '#6366f1',
     'BdNava05': '#f59e0b',
+    'BdNava06': '#06b6d4',
 };
 
-const ALL_DBS = ['BdNava00','BdNava01','BdNava02','BdNava03','BdNava04','BdNava05'];
+const ALL_DBS = ['BdNava00','BdNava01','BdNava02','BdNava03','BdNava04','BdNava05','BdNava06'];
 
 // ============================================================
 // Expresión SQL para convertir montos a Soles
@@ -35,28 +36,35 @@ export async function GET(request) {
     const exactDate = searchParams.get('exactDate'); // 'YYYY-MM-DD'
     const weekStr = searchParams.get('weekStr'); // 'YYYY-Wxx'
 
-    let dbList = ids ? ids.split(',').filter(id => id.match(/^BdNava0[0-5]$/)) : ALL_DBS;
+    let dbList = ids ? ids.split(',').filter(id => id.match(/^BdNava\d{2}$/)) : ALL_DBS;
 
     try {
+        // 1. Obtener nombres oficiales y RUCs desde BdNavaSys para mapear a los resultados de ventas
+        const companyNamesMap = new Map();
+        try {
+            const poolSys = await getConnection('BdNavaSys');
+            const resSys = await poolSys.request().query(
+                "SELECT RTRIM(codcia) as codcia, RTRIM(nomcia) as nomcia, RTRIM(ruccia) as ruccia FROM sysnavacia WHERE estado = 1"
+            );
+            resSys.recordset.forEach(c => {
+                companyNamesMap.set(`BdNava${c.codcia.trim()}`, {
+                    name: c.nomcia.trim().toUpperCase(),
+                    ruc: c.ruccia.trim()
+                });
+            });
+        } catch (err) {
+            console.error("Error fetching company details from BdNavaSys:", err.message);
+        }
+
         const results = [];
 
         for (const dbId of dbList) {
             const pool = await getConnection(dbId);
 
-            // ============ NOMBRE REAL DE LA EMPRESA (desde el ERP) ============
-            let companyName = dbId;
-            let companyRuc = '';
-            try {
-                const emisor = await pool.request().query(
-                    `SELECT TOP 1 RTRIM(nomcia) as nomcia, RTRIM(ruccia) as ruccia FROM tbl_enavasoft_emisor`
-                );
-                if (emisor.recordset.length > 0) {
-                    companyName = emisor.recordset[0].nomcia || dbId;
-                    companyRuc = emisor.recordset[0].ruccia || '';
-                }
-            } catch(e) {
-                // Si no existe la tabla, usar el nombre de la BD
-            }
+            // ============ NOMBRE REAL DE LA EMPRESA (desde la consulta centralizada) ============
+            const nameInfo = companyNamesMap.get(dbId);
+            const companyName = nameInfo ? nameInfo.name : dbId;
+            const companyRuc = nameInfo ? nameInfo.ruc : '';
             const color = DB_COLORS[dbId] || '#4880f5';
 
             // ============================================================
