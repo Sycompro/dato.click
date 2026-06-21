@@ -165,9 +165,16 @@ function CalendarView({ mode, value, onSelect }) {
         days.push({ day: i, current: false, date: new Date(year, month + 1, i) });
     }
 
+    const formatLocalDate = (d) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+    };
+
     const isSelected = (d) => {
         if (mode === 'daily') {
-            const iso = d.toISOString().split('T')[0];
+            const iso = formatLocalDate(d);
             return iso === value;
         }
         if (mode === 'weekly') {
@@ -187,7 +194,7 @@ function CalendarView({ mode, value, onSelect }) {
 
     const handleDateClick = (d) => {
         if (mode === 'daily') {
-            onSelect(d.toISOString().split('T')[0]);
+            onSelect(formatLocalDate(d));
         } else {
             onSelect(getWeekStr(d));
         }

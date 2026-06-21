@@ -67,15 +67,12 @@ export default function Dashboard() {
 
     const [selectedDbs, setSelectedDbs] = useState(['BdNava01']);
     const [period, setPeriod] = useState('monthly');
-    const [year, setYear] = useState(new Date().getFullYear());
-    const [month, setMonth] = useState(new Date().getMonth() + 1);
+    const [year, setYear] = useState(2026);
+    const [month, setMonth] = useState(6);
     
     // ISO Date fallback
-    const [exactDate, setExactDate] = useState(() => {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    });
-    const [weekStr, setWeekStr] = useState('2026-W16'); // Fallback
+    const [exactDate, setExactDate] = useState('2026-06-20');
+    const [weekStr, setWeekStr] = useState('2026-W25');
 
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -88,6 +85,23 @@ export default function Dashboard() {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     useEffect(() => {
+        // Inicializar fechas dinámicamente en el cliente para evitar mismatch de hidratación y desajustes de zona horaria (UTC)
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = d.getMonth() + 1;
+        const dt = `${y}-${String(m).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        
+        const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay() || 7));
+        const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+        const wk = `${date.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+        
+        setYear(y);
+        setMonth(m);
+        setExactDate(dt);
+        setWeekStr(wk);
+
         let isMounted = true;
         fetch('/api/companies').then(r => r.json()).then(res => {
             if (res.success && res.data && isMounted) {
@@ -147,7 +161,7 @@ export default function Dashboard() {
         setData([]); // Limpiar datos actuales para evitar confusión visual
         const ids = selectedDbs.join(',');
         let url = `/api/sales?ids=${ids}&period=${period}&year=${year}&month=${month}`;
-        if (period === 'daily') url += `&exactDate=${exactDate}`;
+        if (period === 'daily' || period === 'hourly') url += `&exactDate=${exactDate}`;
         if (period === 'weekly') url += `&weekStr=${weekStr}`;
         
         fetch(url).then(r => r.json())
@@ -331,7 +345,7 @@ export default function Dashboard() {
                     </div>
                     
 
-                     {period === 'daily' && (
+                     {(period === 'daily' || period === 'hourly') && (
                          <SmartDatePicker 
                              mode="daily" 
                              value={exactDate} 
@@ -407,7 +421,7 @@ export default function Dashboard() {
                     <div className="filter-group">
                         <div className="filter-label">Fecha / Periodo</div>
                         <div className="mobile-date-picker-wrap">
-                            {period === 'daily' && (
+                            {(period === 'daily' || period === 'hourly') && (
                                 <SmartDatePicker 
                                     mode="daily" 
                                     value={exactDate} 
